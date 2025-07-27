@@ -1,0 +1,94 @@
+# message-service
+
+A RESTful API for managing users, built with **Express.js**, **Mongoose**, and **Zod** for schema validation.
+
+## Frameworks & Libraries
+
+- **Express.js**: Web framework for Node.js
+- **Mongoose**: MongoDB object modeling
+- **Zod**: TypeScript-first schema validation
+- **dotenv**: Loads environment variables
+- **ts-node-dev**: TypeScript execution and hot-reloading for development
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v18+ recommended)
+- MongoDB database (local or Atlas)
+
+### Installation
+
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/<your-username>/message-service.git
+   cd message-service
+   ```
+
+2. Install dependencies:
+   ```sh
+   npm install
+   ```
+
+3. Create a `.env` file in the root directory:
+   ```
+   PORT=3000
+   MONGO_URI=your-mongodb-uri
+   ```
+
+### Running the Server
+
+Start the development server:
+```sh
+npm start
+```
+The server will run on the port specified in `.env` (default: 3000).
+
+## API Endpoints
+
+### Status
+
+- `GET /`
+  - Returns a status page with a logo and message.
+
+### Users
+
+All user endpoints are prefixed with `/api/users`.
+
+- `GET /api/users`
+  - Get all users.
+
+- `POST /api/users`
+  - Create a new user.
+  - **Body:**  
+    ```json
+    {
+      "name": "string",
+      "email": "string",
+      "age": 18
+    }
+    ```
+
+- `GET /api/users/:id`
+  - Get a user by ID.
+
+- `PUT /api/users/:id`
+  - Update a user by ID.
+  - **Body:** Partial or full user object.
+
+- `DELETE /api/users/:id`
+  - Delete a user by ID.
+
+## Static Files
+
+- Files in the `public/` directory (e.g., `logo.svg`) are served at the root URL (e.g., `/logo.svg`).
+
+## Error Handling
+
+- All errors return JSON with a `success: false` and a descriptive `message`.
+
+---
+
+**Author:** IF DEV
+---
+**License:** ISC
