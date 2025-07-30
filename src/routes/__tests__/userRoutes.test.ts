@@ -10,7 +10,7 @@ describe('User Routes - ordered integration test', () => {
     const createRes = await request(app)
       .post('/api/users')
       .send(newUser)
-      .expect(201); // REST best practice
+      .expect(201); 
 
     expect(createRes.body.name).toBe(newUser.name);
     userId = createRes.body._id;

@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  api:
+    build: .
+    container_name: message-server-api
+    ports:
+      - "3005:3005"
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - .env.development
+    volumes:
+      - .:/app
+      - /app/node_modules     # prevents host node_modules from overwriting container deps
