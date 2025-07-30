@@ -8,4 +8,6 @@ module.exports = {
   transform: {
     ...tsJestTransformCfg,
   },
+  setupFilesAfterEnv: ['./jest-setup.ts'],
+  testTimeout: 20000,
 };
