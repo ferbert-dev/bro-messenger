@@ -2,3 +2,5 @@ node_modules/
 dist/
 .env
 .mongodb-binaries/
+.DS_Store
+.vscode/
