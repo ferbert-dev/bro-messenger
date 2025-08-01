@@ -4,7 +4,6 @@ import { asyncHandler } from '../utils/asyncHandler';
 import { validateObjectId } from '../middleware/validateObjectId';
 import { userSchema } from '../schemas/userSchema';
 import { validateSchema } from '../middleware/validateSchema';
-
 const router = express.Router();
 
 router.get('/', asyncHandler(userController.getUsers));

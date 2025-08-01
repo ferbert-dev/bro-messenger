@@ -4,3 +4,4 @@ dist/
 .mongodb-binaries/
 .DS_Store
 .vscode/
+coverage/

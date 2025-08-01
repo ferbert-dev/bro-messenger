@@ -5,7 +5,7 @@ describe('User Routes - ordered integration test', () => {
   const newUser = { name: 'Igor', age: 30, email: 'igor@example.com' };
   let userId: string;
 
-  it('should create, fetch, and reject duplicate user', async () => {
+  test('should create, fetch, and reject duplicate user and delete', async () => {
     // 1. Create user
     const createRes = await request(app)
       .post('/api/users')
@@ -30,9 +30,17 @@ describe('User Routes - ordered integration test', () => {
     expect(
       duplicateRes.body.message.toLowerCase()
     ).toMatch(/email|duplicate/);
+    expect(duplicateRes.body.message).toContain("Email already exists");
+
+    const deleteRes = await request(app)
+      .delete(`/api/users/${userId}`)
+      .expect(204);
+
+    expect(deleteRes.body).toEqual({}); // Expect empty body on successful delete
+    expect(deleteRes.status).toBe(204);
   });
 
-  it('should fail when sending invalid data', async () => {
+  test('should fail when sending invalid data', async () => {
     const badRes = await request(app)
       .post('/api/users')
       .send({ name: '', age: -1 })
