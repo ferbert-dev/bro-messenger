@@ -1,8 +1,5 @@
-import de from 'zod/v4/locales/de.cjs';
 import { User, IUser } from '../models/userModel';
 import { HttpError } from '../utils/httpError';
-
-namespace userService {
 
   export const getAllUsers = async () => {
     return await User.find();
@@ -55,5 +52,13 @@ namespace userService {
   export const deleteUserById = async (id: string) => {
     return await User.findByIdAndDelete(id);
   };
-}
+  
+export const userService = {
+  getAllUsers,
+  createUser,
+  getUserById,
+  updateUserById,
+  deleteUserById
+};
+
 export default userService;

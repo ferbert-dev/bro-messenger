@@ -1,6 +1,5 @@
 import request from 'supertest';
 import app from '../../app'; // don't use .listen() in this app file
-import userService from '../../services/userService';
 describe('User Routes - ordered integration test', () => {
   const newUser = { name: 'Igor', age: 30, email: 'igor@example.com' };
   let userId: string;

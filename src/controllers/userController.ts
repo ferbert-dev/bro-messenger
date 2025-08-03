@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import userService from '../services/userService';
 import { HttpError } from '../utils/httpError';
 
