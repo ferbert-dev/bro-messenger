@@ -1,11 +1,16 @@
 import mongoose from 'mongoose';
-
-export const connectDB = async () => {
+import {logger} from '../middleware/logger';
+export const connectDB = async (): Promise<void> => {
+   
+  const MONGO_URI = process.env.MONGO_URI;
+    if (!MONGO_URI) {
+      throw new Error('Missing MONGO_URI');
+    }
   try {
-    await mongoose.connect(process.env.MONGO_URI || '');
-    console.log('MongoDB connected');
+    await mongoose.connect(MONGO_URI);
+  logger.info('✅ MongoDB connected');
   } catch (error) {
-    console.error('Database connection failed', error);
-    process.exit(1);
+   logger.error('❌ MongoDB connection failed:', error);
+    throw error;
   }
 };

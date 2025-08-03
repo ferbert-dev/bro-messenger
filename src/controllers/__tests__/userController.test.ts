@@ -19,6 +19,11 @@ describe('User Controller', () => {
     jest.clearAllMocks();
   });
 
+  beforeEach(() => {
+    jest.spyOn(console, 'error').mockImplementation(() => {}); // 🔇 Suppress error output
+  });
+
+
   describe('getUsers', () => {
     it('should return users as JSON', async () => {
       const users = [{ name: 'Igor', age: 30, email: 'igor@example.com' }];

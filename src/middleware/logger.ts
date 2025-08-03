@@ -1,3 +1,4 @@
-export const logs = (message: string) => {
-  console.log(`[LOG]: ${message}`);
+export const logger = {
+  info: console.log,
+  error: console.error,
 };
