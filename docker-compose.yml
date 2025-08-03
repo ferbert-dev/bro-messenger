@@ -5,11 +5,11 @@ services:
     container_name: message-server-api
     ports:
       - "3005:3005"
-    environment:
-      - NODE_ENV=development
-      - MONGO_URI=mongodb://mongo:27017/message-db
     env_file:
-      - .env.development
+      - .env.development  
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - MONGO_URI=${MONGO_URI}
     volumes:
       - .:/app
       - /app/node_modules     # prevents host node_modules from overwriting container deps
@@ -21,8 +21,12 @@ services:
     restart: always
     ports:
       - "27017:27017"
+    env_file:
+      - .env.development
     environment:
-      MONGO_INITDB_DATABASE: message-db
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_DB_NAME}
     volumes:
       - mongo_data:/data/db
     healthcheck:

@@ -4,10 +4,25 @@ import { HttpError } from '../utils/httpError';
   export const getAllUsers = async () => {
     return await User.find();
   };
+  
+  export const getOneByEmail = (emailData: string): Promise<IUser | null> => {
+  return User.findOne({ email: emailData }).lean();
+};
 
-  export const createUser = async (userData: typeof User) => {
+async function checkIfUserExistBeEmail(email: string) : Promise<void>{
+   const current = await getOneByEmail(email);
+      if(current){
+          throw new HttpError(409, 'Email already exists');
+      }
+}
 
+  export const createUser = async (userData: IUser) => {
+    
     try {
+      const email: string = userData.email;
+     // Duplicate email
+      await checkIfUserExistBeEmail(email);
+      
       const user = new User(userData);
       return await user.save();
     } catch (err: any) {
@@ -52,7 +67,7 @@ import { HttpError } from '../utils/httpError';
   export const deleteUserById = async (id: string) => {
     return await User.findByIdAndDelete(id);
   };
-  
+
 export const userService = {
   getAllUsers,
   createUser,

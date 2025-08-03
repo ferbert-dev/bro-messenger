@@ -1,6 +1,10 @@
 {
   "compilerOptions": {
     "target": "ES6",
+    "baseUrl": "./",
+    "paths": {
+    "@app/*": ["src/*"]
+     },
     "module": "commonjs",
     "outDir": "./dist",
     "rootDir": "./src",
