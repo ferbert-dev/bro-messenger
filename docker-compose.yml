@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   api:
     build: .
@@ -6,27 +5,26 @@ services:
     ports:
       - "3005:3005"
     env_file:
-      - .env.development  
+      - .env
     environment:
-      - NODE_ENV=${NODE_ENV}
+      - NODE_ENV=development
       - MONGO_URI=${MONGO_URI}
     volumes:
       - .:/app
       - /app/node_modules     # prevents host node_modules from overwriting container deps
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
   mongo:
     image: mongo:latest
     container_name: mongo-db
     restart: always
     ports:
       - "27017:27017"
-    env_file:
-      - .env.development
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
-      - MONGO_INITDB_DATABASE=${MONGO_DB_NAME}
+      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
     volumes:
       - mongo_data:/data/db
     healthcheck:

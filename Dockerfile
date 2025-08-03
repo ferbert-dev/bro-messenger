@@ -1,5 +1,5 @@
 # --- Stage 1: build the app ---
-FROM node:20-slim AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 # copy dependency manifests and install ALL deps (including dev)
