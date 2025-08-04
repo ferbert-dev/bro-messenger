@@ -33,12 +33,22 @@ A RESTful API for managing users, built with **Express.js**, **Mongoose**, and *
 3. Create a `.env` file in the root directory:
    ```
    PORT=3000
-   MONGO_URI=your-mongodb-uri
+   MONGO_INITDB_ROOT_USERNAME=admin
+   MONGO_INITDB_ROOT_PASSWORD=admin-secret
+   MONGO_INITDB_DATABASE=message-db
+   NODE_ENV=development
+   MONGO_URI=mongodb://admin:admin-secret@localhost:27017/message-db?authSource=admin
    ```
 
 ### Running the Server
+Notes: It is requered to have a docker insatlled!
+Start the development server and create docker contaiener with DB :
 
-Start the development server:
+```sh
+npm dev
+```
+
+Start the development server only :
 ```sh
 npm start
 ```
