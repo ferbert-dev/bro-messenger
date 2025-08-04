@@ -2,12 +2,12 @@
 import dotenv from 'dotenv';
 import fs from 'fs';
 // Try to load .env.local first
-if (fs.existsSync('.env.local')) {
-  dotenv.config({ path: '.env.local' });
+if (fs.existsSync('./.env.local')) {
+  dotenv.config({ path: './.env.local' });
   console.log('Loaded env from .env.local');
 } else {
   dotenv.config(); // Load .env before anything else
-}
+} 
 
 import app from './app';
 import {connectDB} from './configs/db'
