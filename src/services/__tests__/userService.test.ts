@@ -1,4 +1,4 @@
-import  userService  from '../userService';
+import userService from '../userService';
 import { User } from '../../models/userModel';
 import { HttpError } from '../../utils/httpError';
 
@@ -7,12 +7,15 @@ jest.mock('../../models/userModel', () => {
   const mockFindById = jest.fn();
   const mockFindOne = jest.fn();
 
-  const User = Object.assign(jest.fn().mockImplementation(() => ({
-    save: mockSave,
-  })), {
-    findById: mockFindById,
-    findOne: mockFindOne,
-  });
+  const User = Object.assign(
+    jest.fn().mockImplementation(() => ({
+      save: mockSave,
+    })),
+    {
+      findById: mockFindById,
+      findOne: mockFindOne,
+    },
+  );
 
   return {
     __esModule: true,
@@ -24,15 +27,16 @@ jest.mock('../../models/userModel', () => {
   };
 });
 
-const { mockSave, mockFindById, mockFindOne } = jest.requireMock('../../models/userModel');
-
+const { mockSave, mockFindById, mockFindOne } = jest.requireMock(
+  '../../models/userModel',
+);
 
 describe('createUser', () => {
   const mockUserData = { name: 'Igor', email: 'igor@example.com', age: 30 };
   afterEach(() => {
     jest.clearAllMocks();
   });
-   it('should create and return a user successfully', async () => {
+  it('should create and return a user successfully', async () => {
     mockFindOne.mockReturnValue({ lean: () => Promise.resolve(null) });
     mockSave.mockResolvedValue({ _id: '1', ...mockUserData });
 
@@ -42,31 +46,39 @@ describe('createUser', () => {
     expect(User).toHaveBeenCalledWith(mockUserData);
     expect(mockSave).toHaveBeenCalled();
   });
- it('should throw HttpError if email already exists', async () => {
+  it('should throw HttpError if email already exists', async () => {
     const duplicateError = {
       code: 11000,
       keyPattern: { email: 1 },
     };
-    mockFindOne.mockReturnValue({ lean: () => Promise.resolve({ _id: 'existing' }) });
+    mockFindOne.mockReturnValue({
+      lean: () => Promise.resolve({ _id: 'existing' }),
+    });
     mockSave.mockRejectedValue(duplicateError);
 
-    await expect(userService.createUser(mockUserData as any)).rejects.toThrow(HttpError);
-    await expect(userService.createUser(mockUserData as any)).rejects.toThrow('Email already exists');
+    await expect(userService.createUser(mockUserData as any)).rejects.toThrow(
+      HttpError,
+    );
+    await expect(userService.createUser(mockUserData as any)).rejects.toThrow(
+      'Email already exists',
+    );
   });
 
- it('should throw a generic error for other issues', async () => {
+  it('should throw a generic error for other issues', async () => {
     mockFindOne.mockReturnValue({ lean: () => Promise.resolve(null) });
     mockSave.mockRejectedValue(new Error('Database failure'));
 
-    await expect(userService.createUser(mockUserData as any)).rejects.toThrow('Database failure');
+    await expect(userService.createUser(mockUserData as any)).rejects.toThrow(
+      'Database failure',
+    );
   });
 });
 
 describe('updateUserById (mocked)', () => {
-afterEach(() => {
+  afterEach(() => {
     jest.clearAllMocks();
   });
-   beforeEach(() => {
+  beforeEach(() => {
     // Define & override the static method
     mockFindById.mockClear();
   });
@@ -80,7 +92,12 @@ afterEach(() => {
       __v: 1,
     });
     mockFindById.mockResolvedValue({
-      toObject: () => ({ name: 'Igor', age: 30, email: 'igor@mock.com', __v: 0 }),
+      toObject: () => ({
+        name: 'Igor',
+        age: 30,
+        email: 'igor@mock.com',
+        __v: 0,
+      }),
       save: saveMock,
     });
 
@@ -92,12 +109,12 @@ afterEach(() => {
   it('should throw 404 if user not found', async () => {
     mockFindById.mockResolvedValue(null);
 
-    await expect(userService.updateUserById('fakeid', { name: 'Nobody' }))
-      .rejects
-      .toThrow('User not found');
+    await expect(
+      userService.updateUserById('fakeid', { name: 'Nobody' }),
+    ).rejects.toThrow('User not found');
   });
 });
- 
+
 describe('getUserById', () => {
   const userId = 'abc123';
   const mockUser = { _id: userId, name: 'Igor', email: 'igor@example.com' };

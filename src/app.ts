@@ -2,7 +2,7 @@ import express from 'express';
 import userRoutes from './routes/userRoutes';
 import statusRoutes from './routes/statusRoutes';
 import errorHandler from './middleware/errorHandler';
-import {staticPath as stpa} from './middleware/staticPathImport';
+import { staticPath as stpa } from './middleware/staticPathImport';
 
 const app = express();
 app.use(express.json());

@@ -23,13 +23,12 @@ describe('User Controller', () => {
     jest.spyOn(console, 'error').mockImplementation(() => {}); // 🔇 Suppress error output
   });
 
-
   describe('getUsers', () => {
     it('should return users as JSON', async () => {
       const users = [{ name: 'Igor', age: 30, email: 'igor@example.com' }];
 
       (userService.getAllUsers as jest.Mock).mockResolvedValue(users);
-        const req = {} as Request; // No params needed for this method
+      const req = {} as Request; // No params needed for this method
       const res = mockResponse();
 
       await userController.getUsers(req, res);
@@ -44,7 +43,7 @@ describe('User Controller', () => {
       const userData = { name: 'Igor', age: 30, email: 'igor@example.com' };
       const createdUser = { ...userData, id: '12345', __v: 0 };
       (userService.createUser as jest.Mock).mockResolvedValue(createdUser);
-      const req = { body: userData} as unknown as Request;
+      const req = { body: userData } as unknown as Request;
       const res = mockResponse();
 
       await userController.createUser(req, res);
@@ -56,18 +55,23 @@ describe('User Controller', () => {
 
     it('should throw HttpError if creation fails', async () => {
       (userService.createUser as jest.Mock).mockResolvedValue(null);
-      const req = { body: { name: 'Test'} } as unknown as Request;
+      const req = { body: { name: 'Test' } } as unknown as Request;
       const res = mockResponse();
 
-      await expect(userController.createUser(req, res))
-        .rejects
-        .toThrow(HttpError);
+      await expect(userController.createUser(req, res)).rejects.toThrow(
+        HttpError,
+      );
     });
   });
 
   describe('getUserById', () => {
     it('should return user if found', async () => {
-      const user = { id: '1', name: 'Igor', age: 30, email: 'igor@example.com' };
+      const user = {
+        id: '1',
+        name: 'Igor',
+        age: 30,
+        email: 'igor@example.com',
+      };
       (userService.getUserById as jest.Mock).mockResolvedValue(user);
 
       const req = { params: { id: '1' } } as unknown as Request;
@@ -84,9 +88,9 @@ describe('User Controller', () => {
       const req = { params: { id: '2' } } as unknown as Request;
       const res = mockResponse();
 
-      await expect(userController.getUserById(req, res))
-        .rejects
-        .toThrow(HttpError);
+      await expect(userController.getUserById(req, res)).rejects.toThrow(
+        HttpError,
+      );
     });
   });
 
@@ -95,18 +99,26 @@ describe('User Controller', () => {
       const updatedUser = { id: '1', name: 'Updated' };
       (userService.updateUserById as jest.Mock).mockResolvedValue(updatedUser);
 
-      const req = { params: { id: '1' }, body: { name: 'Updated' } } as unknown as Request;
+      const req = {
+        params: { id: '1' },
+        body: { name: 'Updated' },
+      } as unknown as Request;
       const res = mockResponse();
 
       await userController.updateUserById(req, res);
 
-      expect(userService.updateUserById).toHaveBeenCalledWith('1', { name: 'Updated' });
+      expect(userService.updateUserById).toHaveBeenCalledWith('1', {
+        name: 'Updated',
+      });
       expect(res.json).toHaveBeenCalledWith(updatedUser);
     });
 
     it('should return 404 if user not found', async () => {
       (userService.updateUserById as jest.Mock).mockResolvedValue(null);
-      const req = { params: { id: '999' }, body: { name: 'XSER' } } as unknown as Request;
+      const req = {
+        params: { id: '999' },
+        body: { name: 'XSER' },
+      } as unknown as Request;
       const res = mockResponse();
 
       await userController.updateUserById(req, res);

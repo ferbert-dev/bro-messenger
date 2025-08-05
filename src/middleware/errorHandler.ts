@@ -5,7 +5,7 @@ const errorHandler = (
   err: Error,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const status = err instanceof HttpError ? err.statusCode : 500;
 

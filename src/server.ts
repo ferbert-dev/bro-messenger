@@ -7,10 +7,10 @@ if (fs.existsSync('./.env.local')) {
   console.log('Loaded env from .env.local');
 } else {
   dotenv.config(); // Load .env before anything else
-} 
+}
 
 import app from './app';
-import {connectDB} from './configs/db'
+import { connectDB } from './configs/db';
 import { logger } from './middleware/logger';
 
 const PORT = process.env.PORT || 3001;

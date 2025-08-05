@@ -1,7 +1,9 @@
-import path from "path"
+import path from 'path';
 import express from 'express';
 
-export const staticPath = express.static(path.join(__dirname, '..','..', 'public'));
+export const staticPath = express.static(
+  path.join(__dirname, '..', '..', 'public'),
+);
 // This middleware serves static files from the 'public' directory
 // It allows you to access files like logo.png directly via the URL
 // For example, if you have a file public/logo.png, it can be accessed at /logo.png

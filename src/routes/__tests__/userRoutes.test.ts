@@ -9,7 +9,7 @@ describe('User Routes - ordered integration test', () => {
     const createRes = await request(app)
       .post('/api/users')
       .send(newUser)
-      .expect(201); 
+      .expect(201);
 
     expect(createRes.body.name).toBe(newUser.name);
     userId = createRes.body._id;
@@ -26,10 +26,8 @@ describe('User Routes - ordered integration test', () => {
       .expect(409); // Use 409 if your service returns it for duplicates
 
     // Accept both your raw DB error or custom error message
-    expect(
-      duplicateRes.body.message.toLowerCase()
-    ).toMatch(/email|duplicate/);
-    expect(duplicateRes.body.message).toContain("Email already exists");
+    expect(duplicateRes.body.message.toLowerCase()).toMatch(/email|duplicate/);
+    expect(duplicateRes.body.message).toContain('Email already exists');
 
     const deleteRes = await request(app)
       .delete(`/api/users/${userId}`)
