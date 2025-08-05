@@ -3,12 +3,28 @@ import { User } from '../../models/userModel';
 import { HttpError } from '../../utils/httpError';
 
 jest.mock('../../models/userModel', () => {
+  const mockSave = jest.fn();
+  const mockFindById = jest.fn();
+  const mockFindOne = jest.fn();
+
+  const User = Object.assign(jest.fn().mockImplementation(() => ({
+    save: mockSave,
+  })), {
+    findById: mockFindById,
+    findOne: mockFindOne,
+  });
+
   return {
-    User: jest.fn().mockImplementation(() => ({
-      save: jest.fn(),
-    })),
+    __esModule: true,
+    User,
+    default: User,
+    mockSave,
+    mockFindById,
+    mockFindOne,
   };
 });
+
+const { mockSave, mockFindById, mockFindOne } = jest.requireMock('../../models/userModel');
 
 describe('createUser', () => {
   const mockUserData = { name: 'Igor', email: 'igor@example.com', age: 30 };
@@ -16,8 +32,8 @@ describe('createUser', () => {
     jest.clearAllMocks();
   });
    it('should create and return a user successfully', async () => {
-    const mockSave = jest.fn().mockResolvedValue({ _id: '1', ...mockUserData });
-    (User as unknown as jest.Mock).mockImplementation(() => ({ save: mockSave }));
+    mockFindOne.mockReturnValue({ lean: () => Promise.resolve(null) });
+    mockSave.mockResolvedValue({ _id: '1', ...mockUserData });
 
     const result = await userService.createUser(mockUserData as any);
 
@@ -30,17 +46,16 @@ describe('createUser', () => {
       code: 11000,
       keyPattern: { email: 1 },
     };
-    const mockSave = jest.fn().mockRejectedValue(duplicateError);
-    (User as unknown as jest.Mock).mockImplementation(() => ({ save: mockSave }));
+    mockFindOne.mockReturnValue({ lean: () => Promise.resolve({ _id: 'existing' }) });
+    mockSave.mockRejectedValue(duplicateError);
 
     await expect(userService.createUser(mockUserData as any)).rejects.toThrow(HttpError);
     await expect(userService.createUser(mockUserData as any)).rejects.toThrow('Email already exists');
   });
 
  it('should throw a generic error for other issues', async () => {
-    const otherError = new Error('Database failure');
-    const mockSave = jest.fn().mockRejectedValue(otherError);
-    (User as unknown as jest.Mock).mockImplementation(() => ({ save: mockSave }));
+    mockFindOne.mockReturnValue({ lean: () => Promise.resolve(null) });
+    mockSave.mockRejectedValue(new Error('Database failure'));
 
     await expect(userService.createUser(mockUserData as any)).rejects.toThrow('Database failure');
   });
@@ -52,7 +67,7 @@ afterEach(() => {
   });
    beforeEach(() => {
     // Define & override the static method
-    (User as any).findById = jest.fn();
+    mockFindById.mockClear();
   });
 
   it('should update user and save', async () => {
@@ -63,7 +78,7 @@ afterEach(() => {
       email: 'igor@mock.com',
       __v: 1,
     });
-    (User.findById as any).mockResolvedValue({
+    mockFindById.mockResolvedValue({
       toObject: () => ({ name: 'Igor', age: 30, email: 'igor@mock.com', __v: 0 }),
       save: saveMock,
     });
@@ -74,7 +89,7 @@ afterEach(() => {
   });
 
   it('should throw 404 if user not found', async () => {
-    (User.findById as any).mockResolvedValue(null);
+    mockFindById.mockResolvedValue(null);
 
     await expect(userService.updateUserById('fakeid', { name: 'Nobody' }))
       .rejects
@@ -88,7 +103,7 @@ describe('getUserById', () => {
 
   beforeEach(() => {
     // Define & override the static method
-    (User as any).findById = jest.fn();
+    mockFindById.mockClear();
   });
 
   afterEach(() => {
@@ -96,20 +111,20 @@ describe('getUserById', () => {
   });
 
   it('should return the user if found', async () => {
-    (User.findById as jest.Mock).mockResolvedValue(mockUser);
+    mockFindById.mockResolvedValue(mockUser);
 
     const result = await userService.getUserById(userId);
 
-    expect(User.findById).toHaveBeenCalledWith(userId);
+    expect(mockFindById).toHaveBeenCalledWith(userId);
     expect(result).toEqual(mockUser);
   });
 
   it('should return null if user is not found', async () => {
-    (User.findById as jest.Mock).mockResolvedValue(null);
+    mockFindById.mockResolvedValue(null);
 
     const result = await userService.getUserById(userId);
 
-    expect(User.findById).toHaveBeenCalledWith(userId);
+    expect(mockFindById).toHaveBeenCalledWith(userId);
     expect(result).toBeNull();
   });
 });
