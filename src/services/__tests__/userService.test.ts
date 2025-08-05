@@ -26,6 +26,7 @@ jest.mock('../../models/userModel', () => {
 
 const { mockSave, mockFindById, mockFindOne } = jest.requireMock('../../models/userModel');
 
+
 describe('createUser', () => {
   const mockUserData = { name: 'Igor', email: 'igor@example.com', age: 30 };
   afterEach(() => {
