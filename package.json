@@ -5,6 +5,7 @@
   "main": "server.ts",
   "scripts": {
     "test": "jest --coverage",
+    "test-ci": "jest",
     "build": "tsc -p .",
     "prestart": "tsc  -p .",
     "start": "node dist/server.js",
