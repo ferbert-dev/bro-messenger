@@ -41,6 +41,7 @@ describe('createUser', () => {
     expect(User).toHaveBeenCalledWith(mockUserData);
     expect(mockSave).toHaveBeenCalled();
   });
+  
  it('should throw HttpError if email already exists', async () => {
     const duplicateError = {
       code: 11000,
