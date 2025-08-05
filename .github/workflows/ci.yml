@@ -30,6 +30,12 @@ jobs:
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-node-
+            
+    - name: Cache MongoDB binaries
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/mongodb-binaries
+        key: ${{ runner.os }}-mongodb-binaries
 
     - name: Install dependencies
       run: npm ci
