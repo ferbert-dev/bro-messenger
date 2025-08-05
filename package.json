@@ -10,7 +10,8 @@
     "build": "tsc -p .",
     "start": "node dist/server.js",
     "dev": "docker-compose up -d && npm run start",
-    "dev:clean": "docker-compose down -v && docker-compose up -d --build && npm run start"
+    "dev:clean": "docker-compose down -v && docker-compose up -d --build && npm run start",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
