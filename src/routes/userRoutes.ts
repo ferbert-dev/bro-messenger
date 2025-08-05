@@ -7,7 +7,10 @@ import { validateSchema } from '../middleware/validateSchema';
 const router = express.Router();
 
 router.get('/', asyncHandler(userController.getUsers));
-router.post('/',validateSchema(userSchema),asyncHandler(userController.createUser),
+router.post(
+  '/',
+  validateSchema(userSchema),
+  asyncHandler(userController.createUser),
 ); // validate full body
 router.get(
   '/:id',
