@@ -2,14 +2,16 @@ import express from 'express';
 import * as userController from '../controllers/userController';
 import { asyncHandler } from '../utils/asyncHandler';
 import { validateObjectId } from '../middleware/validateObjectId';
-import { authenticateAdminToken, authenticateToken } from '../middleware/authMiddleware';
+import {
+  authenticateAdminToken,
+  authenticateToken,
+} from '../middleware/authMiddleware';
 const router = express.Router();
 
-router.get('/', 
-  authenticateToken,
-  asyncHandler(userController.getUsers));
+router.get('/', authenticateToken, asyncHandler(userController.getUsers));
 
-router.get(    //admin need
+router.get(
+  //admin need
   '/me',
   authenticateToken,
   asyncHandler(userController.getMyProfile),
@@ -24,12 +26,12 @@ router.put(
 //admin endpoints
 router.delete(
   '/:id',
-  authenticateAdminToken,   
+  authenticateAdminToken,
   validateObjectId('id'),
   asyncHandler(userController.deleteUserById),
 );
 
-router.get(    
+router.get(
   '/:id',
   authenticateAdminToken,
   validateObjectId('id'),

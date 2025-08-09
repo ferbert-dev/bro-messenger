@@ -19,8 +19,6 @@ export async function checkIfUserExistBeEmail(email: string): Promise<void> {
   }
 }
 
-
-
 export const createUser = async (userData: IUser) => {
   try {
     const role = 'user';
@@ -28,15 +26,15 @@ export const createUser = async (userData: IUser) => {
     // Duplicate email
     await checkIfUserExistBeEmail(email);
 
-     // Hash password
+    // Hash password
     const hashedPassword = await bcrypt.hash(userData.password, 10);
-     
+
     const user = new User({
       email: email,
       password: hashedPassword,
       name: userData.name,
       role: role,
-      age: userData.age
+      age: userData.age,
     });
 
     return await user.save();
@@ -55,7 +53,7 @@ export const getUserById = async (id: string) => {
 };
 
 const allowedUserUpdateFields = ['name', 'age'] as const;
-type AllowedUserUpdateField = typeof allowedUserUpdateFields[number];
+type AllowedUserUpdateField = (typeof allowedUserUpdateFields)[number];
 type UserUpdateDto = Partial<Pick<IUser, AllowedUserUpdateField>>;
 
 export const updateUserById = async (id: string, userData: UserUpdateDto) => {
@@ -69,8 +67,11 @@ export const updateUserById = async (id: string, userData: UserUpdateDto) => {
   // This is useful for optimistic concurrency control
   // and to ensure that the document is not modified by another operation
 
-   // Filter only allowed fields from userData
-  const filteredData = filterObjectByAllowedKeys(userData, allowedUserUpdateFields);
+  // Filter only allowed fields from userData
+  const filteredData = filterObjectByAllowedKeys(
+    userData,
+    allowedUserUpdateFields,
+  );
   // Assign values back to the actual Mongoose document
   Object.assign(user, filteredData);
 
@@ -91,7 +92,7 @@ export const userService = {
   updateUserById,
   deleteUserById,
   getOneByEmail,
-  checkIfUserExistBeEmail
+  checkIfUserExistBeEmail,
 };
 
 export default userService;

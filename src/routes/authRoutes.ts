@@ -13,8 +13,8 @@ router.post(
 
 router.post(
   '/register',
-  validateSchema(userRegisterSchema),  // validate full body
+  validateSchema(userRegisterSchema), // validate full body
   asyncHandler(authController.registerUser),
-); 
+);
 
 export default router;

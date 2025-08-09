@@ -12,9 +12,9 @@ const userSchema = new Schema(
   {
     name: { type: String, required: true },
     age: { type: Number, required: false },
-    password: {type: String, requered: true},
+    password: { type: String, requered: true },
     email: { type: String, required: true, unique: true },
-    role: { type: String, enum: ['admin', 'user', 'guest'], default: 'user' }
+    role: { type: String, enum: ['admin', 'user', 'guest'], default: 'user' },
   },
   // This is useful for optimistic concurrency control
   // and to ensure that the document is not modified by another operation

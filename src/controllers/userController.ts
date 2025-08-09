@@ -4,11 +4,10 @@ import { HttpError } from '../utils/httpError';
 import { AuthRequest } from '../middleware/authMiddleware';
 import { UserResponseDto } from '../dtos/userResponse.dto';
 
-
 export const getUsers = async (req: Request, res: Response) => {
   const users = await userService.getAllUsers();
   //dto
-  const userDtos = users.map(user => new UserResponseDto(user));
+  const userDtos = users.map((user) => new UserResponseDto(user));
   res.json(userDtos);
 };
 
@@ -50,7 +49,6 @@ export const getUserById = async (req: Request, res: Response) => {
 };
 
 export const updateUserById = async (req: AuthRequest, res: Response) => {
-
   const userId = req.user?.userId;
   const userData = req.body;
   const updatedUser = await userService.updateUserById(userId, userData);
