@@ -3,6 +3,7 @@ import userService from '../services/userService';
 import { User, IUser } from '../models/userModel';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import {USER_CREATED_MESSAGE} from '../common/constants'
 
 export const registerUser = async (req: Request, res: Response) => {
   const role = 'user';
@@ -10,7 +11,7 @@ export const registerUser = async (req: Request, res: Response) => {
   // ... check if user exists, hash password, save user
   const savedUser = await userService.createUser(newUser);
 
-  res.status(201).json({ message: 'User registered successfully' });
+  res.status(201).json({ message: USER_CREATED_MESSAGE });
 };
 
 export const loginUser = async (

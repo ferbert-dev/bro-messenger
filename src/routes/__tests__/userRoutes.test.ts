@@ -1,48 +1,61 @@
 import request from 'supertest';
 import app from '../../app'; // don't use .listen() in this app file
+import { IUser, User } from '../../models/userModel'; // Mongoose model
+import {authHeader} from './utils/auth';
+import {USER_CREATED_MESSAGE, EMAIL_ALREADY_EXISTS} from "../../common/constants"
 describe('User Routes - ordered integration test', () => {
-  const newUser = { name: 'Igor', age: 30, email: 'igor@example.com' };
-  let userId: string;
+  let token: string;
+  const newUserData = { name: 'Igor', password: "12345678", email: 'igor@example.com' };
 
-  test('should create, fetch, and reject duplicate user and delete', async () => {
-    // 1. Create user
-    const createRes = await request(app)
-      .post('/api/users')
-      .send(newUser)
-      .expect(201);
+  beforeAll(async () => {
+  await request(app).post('/api/auth/register').send(newUserData).expect(201);
+  const res = await request(app).post('/api/auth/login').send(newUserData).expect(200);
+  token = res.body.token;
+});
 
-    expect(createRes.body.name).toBe(newUser.name);
-    userId = createRes.body._id;
+  test('should get profile and set all posible properties like age and name', async () => {
+     // 3. get user profile
+     const getProfileRes = await request(app)
+      .get('/api/users/me')
+      .set(authHeader(token))
+      .expect(200); 
 
-    // 2. Get users
-    const getRes = await request(app).get('/api/users').expect(200);
-    expect(getRes.body.length).toBeGreaterThan(0);
-    expect(getRes.body[0].email).toBe(newUser.email);
+      const id = getProfileRes.body.id
+        console.log(id)
+      const storedBeforeChange  = await User.findById(id)
+  
+    // 4. get user profile
+    const setAllPropertiesUserData = { id :"1231435", age: 123, role : 'admin', name: 'Igor Super', password: "87654321", email: 'anton@example.com', v:'100'};
 
-    // 3. Try to create same user again (should fail due to unique email)
-    const duplicateRes = await request(app)
-      .post('/api/users')
-      .send(newUser)
-      .expect(409); // Use 409 if your service returns it for duplicates
+    const getSetProfileRes = await request(app)
+      .put('/api/users/me')
+      .set(authHeader(token))
+     .send(setAllPropertiesUserData)
+      .expect(200); 
+    
+    const storedAfterChange = await User.findById(id)
 
-    // Accept both your raw DB error or custom error message
-    expect(duplicateRes.body.message.toLowerCase()).toMatch(/email|duplicate/);
-    expect(duplicateRes.body.message).toContain('Email already exists');
+    console.log(getProfileRes)
+    console.log(storedBeforeChange!)
+    console.log(storedAfterChange!.id)
 
-    const deleteRes = await request(app)
-      .delete(`/api/users/${userId}`)
-      .expect(204);
+    expect(storedAfterChange?.id).toBe(storedBeforeChange?.id);
+    expect(storedAfterChange?.password).toBe(storedBeforeChange?.password);
+    expect(storedAfterChange?.email).toBe(storedBeforeChange?.email);
+    expect(storedAfterChange?.role).toBe(storedBeforeChange?.role);
+    expect(storedAfterChange?.__v).toBe((storedBeforeChange!!.__v)+1);
 
-    expect(deleteRes.body).toEqual({}); // Expect empty body on successful delete
-    expect(deleteRes.status).toBe(204);
-  });
+      //changes in the dto
+    expect(getSetProfileRes.body._id).toBe(getProfileRes.body._id);
+    expect(getSetProfileRes.body.role).toBe(getProfileRes.body.role);
+    expect(getSetProfileRes.body.email).toBe(getProfileRes.body.email);
+    expect(getSetProfileRes.body.name).toBe(setAllPropertiesUserData.name);
+     
+    const registerRes = await request(app)
+      .post('/api/auth/register')
+      .send(newUserData)
+      .expect(409);
 
-  test('should fail when sending invalid data', async () => {
-    const badRes = await request(app)
-      .post('/api/users')
-      .send({ name: '', age: -1 })
-      .expect(400);
-
-    expect(badRes.body.message.toLowerCase()).toContain('validation');
-  });
+      expect(registerRes?.body.message).toContain(EMAIL_ALREADY_EXISTS);
+    })
 });
