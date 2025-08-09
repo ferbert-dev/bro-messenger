@@ -1,7 +1,12 @@
 import { z } from 'zod';
 
-export const userSchema = z.object({
+export const userRegisterSchema = z.object({
   name: z.string().min(3, 'Name should be at least 3 characters long'),
   email: z.email('Invalid email'),
-  age: z.number().min(18, 'Age must be at least 18'),
+  password: z.string().min(8, "Password should be at least 8 characters long"),
+});
+
+export const userLoginSchema = z.object({
+  email: z.email('Invalid email'),
+  password: z.string().min(8, "Password should be at least 8 characters long"),
 });
