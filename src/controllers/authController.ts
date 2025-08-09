@@ -3,7 +3,7 @@ import userService from '../services/userService';
 import { User, IUser } from '../models/userModel';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import {USER_CREATED_MESSAGE} from '../common/constants'
+import { USER_CREATED_MESSAGE } from '../common/constants';
 
 export const registerUser = async (req: Request, res: Response) => {
   const role = 'user';
