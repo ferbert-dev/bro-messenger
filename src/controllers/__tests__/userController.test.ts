@@ -25,7 +25,14 @@ describe('User Controller', () => {
 
   describe('getUsers', () => {
     it('should return users as JSON', async () => {
-      const users = [{ name: 'Igor', email: 'igor@example.com', role:'user', id:"321435146fdsf" }];
+      const users = [
+        {
+          name: 'Igor',
+          email: 'igor@example.com',
+          role: 'user',
+          id: '321435146fdsf',
+        },
+      ];
 
       (userService.getAllUsers as jest.Mock).mockResolvedValue(users);
       const req = {} as Request; // No params needed for this method
@@ -40,8 +47,13 @@ describe('User Controller', () => {
 
   describe('createUser', () => {
     it('should create a user and return 201', async () => {
-      const userData = { name: 'Igor', email: 'igor@example.com', role:'user', id:"321435146fdsf" };
-      const createdUser = { ...userData, id: '12345'};
+      const userData = {
+        name: 'Igor',
+        email: 'igor@example.com',
+        role: 'user',
+        id: '321435146fdsf',
+      };
+      const createdUser = { ...userData, id: '12345' };
       (userService.createUser as jest.Mock).mockResolvedValue(createdUser);
       const req = { body: userData } as unknown as Request;
       const res = mockResponse();
@@ -66,7 +78,12 @@ describe('User Controller', () => {
 
   describe('getUserById', () => {
     it('should return user if found', async () => {
-      const user = { name: 'Igor', email: 'igor@example.com', role:'user', id:"321435146fdsf" };
+      const user = {
+        name: 'Igor',
+        email: 'igor@example.com',
+        role: 'user',
+        id: '321435146fdsf',
+      };
       (userService.getUserById as jest.Mock).mockResolvedValue(user);
 
       const req = { params: { id: '1' } } as unknown as Request;
@@ -94,7 +111,7 @@ describe('User Controller', () => {
       const updatedUser = { id: '1', name: 'Updated' };
       (userService.updateUserById as jest.Mock).mockResolvedValue(updatedUser);
 
-      const req  = {
+      const req = {
         user: { userId: '1' },
         body: { name: 'Updated' },
       } as unknown as Request;

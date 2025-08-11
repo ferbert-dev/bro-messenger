@@ -7,7 +7,7 @@ jest.mock('../../models/userModel', () => {
   const mockSave = jest.fn();
   const mockFindById = jest.fn();
   const mockFindOne = jest.fn();
-  const mockBcript = jest.fn
+  const mockBcript = jest.fn;
   const User = Object.assign(
     jest.fn().mockImplementation(() => ({
       save: mockSave,
@@ -28,19 +28,26 @@ jest.mock('../../models/userModel', () => {
   };
 });
 
-const { mockSave, mockFindById, mockFindOne} = jest.requireMock(
+const { mockSave, mockFindById, mockFindOne } = jest.requireMock(
   '../../models/userModel',
 );
 
-jest.mock('bcryptjs',()=> ({
+jest.mock('bcryptjs', () => ({
   hash: jest.fn().mockImplementation(async (value: string) => value),
-  compare: jest.fn().mockImplementation(async (value: string, hash: string) => value === hash),
+  compare: jest
+    .fn()
+    .mockImplementation(async (value: string, hash: string) => value === hash),
   genSalt: jest.fn().mockResolvedValue('mocked-salt'),
 }));
 
-
 describe('createUser', () => {
-  const mockUserData = { name: 'Igor', email: 'igor@example.com', age: 30, password:"12345678", role:"user" };
+  const mockUserData = {
+    name: 'Igor',
+    email: 'igor@example.com',
+    age: 30,
+    password: '12345678',
+    role: 'user',
+  };
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -57,7 +64,7 @@ describe('createUser', () => {
     expect(User).toHaveBeenCalledWith(mockUserData);
     expect(mockSave).toHaveBeenCalled();
   });
-  
+
   it('should throw HttpError if email already exists', async () => {
     const duplicateError = {
       code: 11000,
