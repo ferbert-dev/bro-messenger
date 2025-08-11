@@ -1,5 +1,5 @@
 # --- Stage 1: build the app ---
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 # copy dependency manifests and install ALL deps (including dev)
@@ -15,7 +15,7 @@ RUN npx tsc
 
 
 # --- Stage 2: create a lightweight runtime image ---
-FROM node:20-alpine AS runtime
+FROM node:22-alpine AS runtime
 
 WORKDIR /app
 
