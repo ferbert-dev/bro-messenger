@@ -2,30 +2,40 @@ import express from 'express';
 import * as userController from '../controllers/userController';
 import { asyncHandler } from '../utils/asyncHandler';
 import { validateObjectId } from '../middleware/validateObjectId';
-import { userSchema } from '../schemas/userSchema';
-import { validateSchema } from '../middleware/validateSchema';
+import {
+  authenticateAdminToken,
+  authenticateToken,
+} from '../middleware/authMiddleware';
 const router = express.Router();
 
-router.get('/', asyncHandler(userController.getUsers));
-router.post(
-  '/',
-  validateSchema(userSchema),
-  asyncHandler(userController.createUser),
-); // validate full body
+router.get('/', authenticateToken, asyncHandler(userController.getUsers));
+
 router.get(
-  '/:id',
-  validateObjectId('id'),
-  asyncHandler(userController.getUserById),
+  //admin need
+  '/me',
+  authenticateToken,
+  asyncHandler(userController.getMyProfile),
 ); // validate only the ID
+
 router.put(
-  '/:id',
-  validateObjectId('id'),
+  '/me',
+  authenticateToken,
   asyncHandler(userController.updateUserById),
 );
+
+//admin endpoints
 router.delete(
   '/:id',
+  authenticateAdminToken,
   validateObjectId('id'),
   asyncHandler(userController.deleteUserById),
 );
+
+router.get(
+  '/:id',
+  authenticateAdminToken,
+  validateObjectId('id'),
+  asyncHandler(userController.getUserById),
+); // validate only the ID
 
 export default router;
