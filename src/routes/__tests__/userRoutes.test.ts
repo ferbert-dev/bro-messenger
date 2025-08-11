@@ -1,7 +1,7 @@
 import request from 'supertest';
 import app from '../../app'; // don't use .listen() in this app file
 import { IUser, User } from '../../models/userModel'; // Mongoose model
-import { authHeader } from './utils/auth';
+import { authHeader } from '../../utils/authUtils';
 import {
   USER_CREATED_MESSAGE,
   EMAIL_ALREADY_EXISTS,
@@ -31,7 +31,6 @@ describe('User Routes - ordered integration test', () => {
       .expect(200);
 
     const id = getProfileRes.body.id;
-    console.log(id);
     const storedBeforeChange = await User.findById(id);
 
     // 4. get user profile
@@ -52,10 +51,6 @@ describe('User Routes - ordered integration test', () => {
       .expect(200);
 
     const storedAfterChange = await User.findById(id);
-
-    console.log(getProfileRes);
-    console.log(storedBeforeChange!);
-    console.log(storedAfterChange!.id);
 
     expect(storedAfterChange?.id).toBe(storedBeforeChange?.id);
     expect(storedAfterChange?.password).toBe(storedBeforeChange?.password);

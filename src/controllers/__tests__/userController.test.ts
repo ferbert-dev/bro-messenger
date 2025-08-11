@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import * as userController from '.././userController'; // Adjust path if needed
 import userService from '../../services/userService';
 import { HttpError } from '../../utils/httpError';
-
+import { AuthRequest } from '../../middleware/authMiddleware';
 // Mocks
 jest.mock('../../services/userService');
 
@@ -25,7 +25,7 @@ describe('User Controller', () => {
 
   describe('getUsers', () => {
     it('should return users as JSON', async () => {
-      const users = [{ name: 'Igor', age: 30, email: 'igor@example.com' }];
+      const users = [{ name: 'Igor', email: 'igor@example.com', role:'user', id:"321435146fdsf" }];
 
       (userService.getAllUsers as jest.Mock).mockResolvedValue(users);
       const req = {} as Request; // No params needed for this method
@@ -40,8 +40,8 @@ describe('User Controller', () => {
 
   describe('createUser', () => {
     it('should create a user and return 201', async () => {
-      const userData = { name: 'Igor', age: 30, email: 'igor@example.com' };
-      const createdUser = { ...userData, id: '12345', __v: 0 };
+      const userData = { name: 'Igor', email: 'igor@example.com', role:'user', id:"321435146fdsf" };
+      const createdUser = { ...userData, id: '12345'};
       (userService.createUser as jest.Mock).mockResolvedValue(createdUser);
       const req = { body: userData } as unknown as Request;
       const res = mockResponse();
@@ -66,12 +66,7 @@ describe('User Controller', () => {
 
   describe('getUserById', () => {
     it('should return user if found', async () => {
-      const user = {
-        id: '1',
-        name: 'Igor',
-        age: 30,
-        email: 'igor@example.com',
-      };
+      const user = { name: 'Igor', email: 'igor@example.com', role:'user', id:"321435146fdsf" };
       (userService.getUserById as jest.Mock).mockResolvedValue(user);
 
       const req = { params: { id: '1' } } as unknown as Request;
@@ -99,8 +94,8 @@ describe('User Controller', () => {
       const updatedUser = { id: '1', name: 'Updated' };
       (userService.updateUserById as jest.Mock).mockResolvedValue(updatedUser);
 
-      const req = {
-        params: { id: '1' },
+      const req  = {
+        user: { userId: '1' },
         body: { name: 'Updated' },
       } as unknown as Request;
       const res = mockResponse();
