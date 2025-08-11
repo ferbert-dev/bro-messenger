@@ -11,7 +11,7 @@ if (fs.existsSync('./.env.local')) {
 
 import app from './app';
 import { connectDB } from './configs/db';
-import { logger } from './middleware/logger';
+import { logger } from './utils/logger';
 
 const PORT = process.env.PORT || 3001;
 
