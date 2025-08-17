@@ -23,6 +23,45 @@ router.put(
   asyncHandler(userController.updateUserById),
 );
 
+router.get(
+  '/me/chats',
+  authenticateToken,
+  asyncHandler(userController.getMyChats),
+);
+
+router.get(
+  '/me/chats/:chatId',
+  authenticateToken,
+  asyncHandler(userController.getChatById),
+);
+
+router.post(
+  '/me/chats/:chatId/participants',
+  authenticateToken,
+  asyncHandler(userController.addPartticipantsToChatById),
+);
+
+router.delete(
+  '/me/chats/:chatId/participants/:userId',
+  authenticateToken,
+  asyncHandler(userController.removeParticipantsFromChatById),
+);
+
+router.get(
+  '/me/chats/:chatId',
+  authenticateToken,
+  asyncHandler(userController.getChatById),
+);
+
+
+
+router.post(
+  '/me/chats',
+  authenticateToken,
+  //validateSchema(userRegisterSchema), // validate full body
+  asyncHandler(userController.createChat),
+);
+
 //admin endpoints
 router.delete(
   '/:id',
