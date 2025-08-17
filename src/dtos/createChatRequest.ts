@@ -1,5 +1,5 @@
-interface CreateChatRequest{
-  title?: string,
-  adminId: string,
-  participantIds: string[],
+interface CreateChatRequest {
+  title?: string;
+  adminId: string;
+  participantIds: string[];
 }

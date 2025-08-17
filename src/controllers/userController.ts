@@ -15,7 +15,7 @@ export const getUsers = async (req: Request, res: Response) => {
 export const getMyChats = async (req: AuthRequest, res: Response) => {
   const userId = req.user?.userId;
   const chats = await chatService.getMyChats(userId);
-  console.log("chats: "+ chats)
+  console.log('chats: ' + chats);
   //dto
   //const userDtos = users.map((user) => new UserResponseDto(user));
   res.json(chats);
@@ -24,7 +24,7 @@ export const getMyChats = async (req: AuthRequest, res: Response) => {
 export const createChat = async (req: AuthRequest, res: Response) => {
   console.log(req.body);
   const userId = req.user?.userId;
-  const chatData : CreateChatRequest = req.body;
+  const chatData: CreateChatRequest = req.body;
   chatData.adminId = userId;
   const newChat = await chatService.createChat(chatData);
 
@@ -35,7 +35,6 @@ export const createChat = async (req: AuthRequest, res: Response) => {
   //const userDto = new UserResponseDto(newUser);
   res.status(201).json(newChat);
 };
-
 
 export const createUser = async (req: Request, res: Response) => {
   console.log(req.body);
@@ -95,42 +94,46 @@ export const deleteUserById = async (req: Request, res: Response) => {
   res.status(204).send('Deleted');
 };
 
-
 export const getChatById = async (req: AuthRequest, res: Response) => {
   const chatId = req.params.chatId;
   const userId = req.user?.userId;
   const chat = await chatService.getChatById(chatId);
   if (!chat) {
-      throw new HttpError(404, 'CHAT_NOT_ FOUND');
-    }
-  if (!chat.participants.some(p => p.equals(userId))) {
-    throw new HttpError(403, "You are not in this chat");
+    throw new HttpError(404, 'CHAT_NOT_ FOUND');
+  }
+  if (!chat.participants.some((p) => p.equals(userId))) {
+    throw new HttpError(403, 'You are not in this chat');
   }
 
   //dto
   res.json(chat);
 };
 
-export const addPartticipantsToChatById = async (req: AuthRequest, res: Response) => {
+export const addPartticipantsToChatById = async (
+  req: AuthRequest,
+  res: Response,
+) => {
   const chatId = req.params.chatId;
   const newUserId = req.body.userId;
 
   const userId = req.user?.userId;
   const chat = await chatService.getChatById(chatId);
   if (!chat) {
-      throw new HttpError(404, 'CHAT_NOT_ FOUND');
-    }
-  if (!chat.admins.some(p => p.equals(userId))) {
-    throw new HttpError(403, "You are not admin in this chat");
+    throw new HttpError(404, 'CHAT_NOT_ FOUND');
+  }
+  if (!chat.admins.some((p) => p.equals(userId))) {
+    throw new HttpError(403, 'You are not admin in this chat');
   }
   const result = await chatService.addParticipant(chatId, newUserId);
- 
+
   //dto
   res.status(201).json(result);
 };
 
-export const removeParticipantsFromChatById = async (req: AuthRequest, res: Response) => {
-
+export const removeParticipantsFromChatById = async (
+  req: AuthRequest,
+  res: Response,
+) => {
   const chatId = req.params.chatId;
   const userIdtoRemove = req.params.userId;
 
@@ -138,15 +141,14 @@ export const removeParticipantsFromChatById = async (req: AuthRequest, res: Resp
   const chat = await chatService.getChatById(chatId);
 
   if (!chat) {
-      throw new HttpError(404, 'CHAT_NOT_ FOUND');
-    }
-  if (!chat.admins.some(p => p.equals(userId))) {
-    throw new HttpError(403, "You are not admin in this chat");
+    throw new HttpError(404, 'CHAT_NOT_ FOUND');
+  }
+  if (!chat.admins.some((p) => p.equals(userId))) {
+    throw new HttpError(403, 'You are not admin in this chat');
   }
 
   const result = await chatService.removeParticipant(chatId, userIdtoRemove);
- 
+
   //dto
   res.status(204).json(result);
 };
-

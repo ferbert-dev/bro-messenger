@@ -53,8 +53,6 @@ router.get(
   asyncHandler(userController.getChatById),
 );
 
-
-
 router.post(
   '/me/chats',
   authenticateToken,

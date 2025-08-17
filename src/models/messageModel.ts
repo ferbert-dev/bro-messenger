@@ -7,12 +7,11 @@ export interface IMessage extends Document {
 
 const messageSchema = new Schema<IMessage>(
   {
-    content: {type: String, required: true},
-    author: 
-    {
+    content: { type: String, required: true },
+    author: {
       type: Schema.Types.ObjectId,
-      ref: "User", // must match the model name
-      required: true
+      ref: 'User', // must match the model name
+      required: true,
     },
   },
   // This is useful for optimistic concurrency control
@@ -20,7 +19,7 @@ const messageSchema = new Schema<IMessage>(
   {
     versionKey: '__v', //  custom version key
     optimisticConcurrency: true, //  enable optimistic locking
-    timestamps: true // auto adds createdAt & updatedAt
+    timestamps: true, // auto adds createdAt & updatedAt
   },
 );
 
