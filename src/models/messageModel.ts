@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IMessage extends Document {
   content: string;
   author: mongoose.Types.ObjectId;
+  chat: mongoose.Types.ObjectId;
 }
 
 const messageSchema = new Schema<IMessage>(
@@ -11,6 +12,11 @@ const messageSchema = new Schema<IMessage>(
     author: {
       type: Schema.Types.ObjectId,
       ref: 'User', // must match the model name
+      required: true,
+    },
+    chat: {
+      type: Schema.Types.ObjectId,
+      ref: 'Chat', // must match the model name
       required: true,
     },
   },
@@ -23,4 +29,4 @@ const messageSchema = new Schema<IMessage>(
   },
 );
 
-export const Chat = mongoose.model<IMessage>('Message', messageSchema);
+export const Message = mongoose.model<IMessage>('Message', messageSchema);
