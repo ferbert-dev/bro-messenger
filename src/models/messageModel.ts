@@ -5,7 +5,7 @@ export interface IMessage extends Document {
   author: mongoose.Types.ObjectId;
   chat: mongoose.Types.ObjectId;
   createdAt: Date;
-  updatedAt: Date;   
+  updatedAt: Date;
 }
 
 const messageSchema = new Schema<IMessage>(
