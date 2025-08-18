@@ -6,7 +6,7 @@ export async function getMessagesByChatId(
 ): Promise<IMessage[] | null> {
   const chatId = ensureObjectId(chatIdRaw);
   const messages = await Message.find({ chat: chatId })
-    .populate('participants', 'name')
+    .populate('author', 'name')
     .sort({ createdAt: 1 });
   return messages;
 }

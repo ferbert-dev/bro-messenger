@@ -3,7 +3,6 @@ import { Chat, IChat } from '../models/chatModel';
 import { Types } from 'mongoose';
 import { ensureObjectId } from '../utils/objectIdValidator';
 import { User } from '../models/userModel';
-
 export const getAllChats = async () => {
   return await Chat.find();
 };
@@ -83,7 +82,7 @@ export async function removeParticipant(
 
 export async function getChatById(chatIdRaw: string): Promise<IChat | null> {
   const chatId = ensureObjectId(chatIdRaw);
-  const chat = await Chat.findById(chatId);
+  const chat = await Chat.findById(chatId).lean<IChat>().exec();
   return chat;
 }
 

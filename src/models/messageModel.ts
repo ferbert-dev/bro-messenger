@@ -4,6 +4,8 @@ export interface IMessage extends Document {
   content: string;
   author: mongoose.Types.ObjectId;
   chat: mongoose.Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;   
 }
 
 const messageSchema = new Schema<IMessage>(
