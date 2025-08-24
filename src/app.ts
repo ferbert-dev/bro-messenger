@@ -12,11 +12,10 @@ app.use(express.json());
 app.use(staticPath);
 
 app.use('/', statusRoutes);
+
 // Serve user-related routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-
-// 👇 Always the last middleware
 app.use(errorHandler);
 
 export default app;

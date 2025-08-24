@@ -1,11 +1,11 @@
 import { Server } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
-import jwt from 'jsonwebtoken';
 import { logger } from '../utils/logger';
 import chatService from './chatService';
 import { getMessagesByChatId } from './messageService';
 import { IChat } from '../models/chatModel';
 import { IMessage, Message } from '../models/messageModel';
+import authService from './authService';
 
 // ---- Types ----
 type JwtPayload = {
@@ -60,7 +60,7 @@ export function initWebSocket(server: Server, path = '/ws') {
       }
 
       // 3) Verify JWT
-      const payload = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+      const payload :JwtPayload = authService.verifyToken<JwtPayload>(token);
       if (!payload?.userId) {
         socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
         socket.destroy();

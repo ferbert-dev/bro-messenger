@@ -18,3 +18,17 @@ export class UserResponseDto {
     this.role = user.role;
   }
 }
+
+export class UserWithoutRoleResponseDto {
+  id: string;
+  email: string;
+  name: string;
+
+  constructor(user: any) {
+    this.id = user._id?.toString() || user.id;
+    this.email = user.email;
+    this.name = user.name;
+  }
+}
+
+

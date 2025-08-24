@@ -1,4 +1,5 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Types } from 'mongoose';
+
 
 export interface IUser extends Document {
   name: string;
@@ -7,6 +8,19 @@ export interface IUser extends Document {
   password: string;
   role: 'admin' | 'user' | 'guest';
 }
+
+export interface IUserDoc extends IUser {
+  _id: Types.ObjectId;      
+}
+
+export type IUserCreate = IUser;
+
+export type LoginUserData = {
+  id: string;
+  email: string;
+  role: string;
+};
+
 
 const userSchema = new Schema(
   {

@@ -3,13 +3,15 @@ import { Chat, IChat } from '../models/chatModel';
 import { Types } from 'mongoose';
 import { ensureObjectId } from '../utils/objectIdValidator';
 import { User } from '../models/userModel';
+import{ CHAT_NOT_FOUND, USER_NOT_FOUND} from '../common/constants'
+
 export const getAllChats = async () => {
-  return await Chat.find();
+  return await Chat.find().populate('participants admins', 'name email').lean();
 };
 
 export const getMyChats = (userIdRaw: string): Promise<IChat[]> => {
   const id = ensureObjectId(userIdRaw);
-  return Chat.find({ $or: [{ admins: id }, { participants: id }] });
+  return Chat.find({ $or: [{ admins: id }, { participants: id }] }).populate('participants admins', 'name email').lean();
 };
 
 export async function createChat(data: CreateChatRequest): Promise<IChat> {
@@ -23,19 +25,20 @@ export async function createChat(data: CreateChatRequest): Promise<IChat> {
     const allParticipants = Array.from(
       new Set([...participantIds.map(String), ...adminIds.map(String)]),
     ).map((id) => new Types.ObjectId(id));
-
-    return Chat.create({
+    const createdChat = await Chat.create({
       title,
       admins: adminIds,
       participants: allParticipants,
     });
+    const populatedChat = createdChat.populate('participants admins', 'name email');
+    return populatedChat;
   } catch (err) {
     // Pass other errors up
     throw err;
   }
 }
 
-export async function addParticipant(
+export async function addMember(
   chatIdRaw: string,
   userIdRaw: string,
 ): Promise<IChat> {
@@ -43,11 +46,11 @@ export async function addParticipant(
   const userId = ensureObjectId(userIdRaw);
 
   const userExists = User.exists({ _id: userId }); // fast existence check
-  if (!userExists) throw new HttpError(404, 'USER_NOT_FOUND');
+  if (!userExists) throw new HttpError(404, USER_NOT_FOUND);
 
   // 1) Load the chat doc
   const chat = await Chat.findById(chatId);
-  if (!chat) throw new Error('Chat not found');
+  if (!chat) throw new Error(CHAT_NOT_FOUND);
 
   // 2) Add only if missing (ObjectId equality!)
   if (!chat.participants.some((p) => p.equals(userId))) {
@@ -57,11 +60,11 @@ export async function addParticipant(
   // 3) Save (triggers pre('save') hooks, validation, etc.)
   await chat.save();
   // 4) Populate and return
-  await chat.populate('participants', 'name email');
+  await chat.populate('participants admins', 'name email');
   return chat;
 }
 
-export async function removeParticipant(
+export async function removeMember(
   chatIdRaw: string,
   userIdRaw: string,
 ): Promise<IChat> {
@@ -69,15 +72,15 @@ export async function removeParticipant(
   const userId = ensureObjectId(userIdRaw);
 
   const chat = await Chat.findById(chatId);
-  if (!chat) throw new Error('CHAT_NOT_FOUND');
+  if (!chat) throw new Error(CHAT_NOT_FOUND);
 
   // 2) Remove user from participants and admins
   // `pull` removes all matching entries (handles duplicates if any)
   chat.participants.pull(userId);
   chat.admins.pull(userId);
   // 3) Save (runs validation + pre('save') middleware)
-  await chat.save();
-  return chat.populate('participants', 'name email');
+  const saveChat = await chat.save();
+  return saveChat.populate('participants admins', 'name email');
 }
 
 export async function getChatById(chatIdRaw: string): Promise<IChat | null> {
@@ -88,8 +91,8 @@ export async function getChatById(chatIdRaw: string): Promise<IChat | null> {
 
 export const chatService = {
   getMyChats,
-  addParticipant,
-  removeParticipant,
+  addMember,
+  removeMember,
   createChat,
   getChatById,
 };

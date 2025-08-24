@@ -1,2 +1,11 @@
 export const USER_CREATED_MESSAGE = 'User registered successfully';
-export const EMAIL_ALREADY_EXISTS = 'Email already exists';
+export const EMAIL_ALREADY_EXISTS = 'EMAIL_ALREADY_EXISTS';
+export const INVALID_EMAIL_OR_PASSWORD = 'INVALID_EMAIL_OR_PASSWORD';
+export const USER_NOT_FOUND = 'USER_NOT_FOUND';
+export const FAILED_TO_CREATE_USER = 'FAILED_TO_CREATE_USER';
+
+export const CHAT_NOT_FOUND = 'CHAT_NOT_FOUND';
+export const FAILED_TO_CREATE_CHAT = 'FAILED_TO_CREATE_CHAT';
+export const NO_CONTENT='NO_CONTENT';
+export const YOU_ARE_NOT_MEMEBER ='YOU_ARE_NOT_MEMEBER'; 
+export const YOU_ARE_NOT_ADMIN ='YOU_ARE_NOT_ADMIN';

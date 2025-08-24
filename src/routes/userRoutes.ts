@@ -1,12 +1,13 @@
 import express from 'express';
 import * as userController from '../controllers/userController';
+import chatRoutes from '../routes/chatRoutes';
 import { asyncHandler } from '../utils/asyncHandler';
 import { validateObjectId } from '../middleware/validateObjectId';
 import {
   authenticateAdminToken,
   authenticateToken,
 } from '../middleware/authMiddleware';
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 router.get('/', authenticateToken, asyncHandler(userController.getUsers));
 
@@ -22,44 +23,7 @@ router.put(
   authenticateToken,
   asyncHandler(userController.updateUserById),
 );
-
-router.get(
-  '/me/chats',
-  authenticateToken,
-  asyncHandler(userController.getMyChats),
-);
-
-router.get(
-  '/me/chats/:chatId',
-  authenticateToken,
-  asyncHandler(userController.getChatById),
-);
-
-router.post(
-  '/me/chats/:chatId/participants',
-  authenticateToken,
-  asyncHandler(userController.addPartticipantsToChatById),
-);
-
-router.delete(
-  '/me/chats/:chatId/participants/:userId',
-  authenticateToken,
-  asyncHandler(userController.removeParticipantsFromChatById),
-);
-
-router.get(
-  '/me/chats/:chatId',
-  authenticateToken,
-  asyncHandler(userController.getChatById),
-);
-
-router.post(
-  '/me/chats',
-  authenticateToken,
-  //validateSchema(userRegisterSchema), // validate full body
-  asyncHandler(userController.createChat),
-);
-
+router.bind
 //admin endpoints
 router.delete(
   '/:id',
@@ -74,5 +38,7 @@ router.get(
   validateObjectId('id'),
   asyncHandler(userController.getUserById),
 ); // validate only the ID
+
+router.use("/me/chats/", chatRoutes);
 
 export default router;
