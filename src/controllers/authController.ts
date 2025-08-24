@@ -43,7 +43,7 @@ export const loginUser = async (
     },
     process.env.JWT_SECRET || // Use env var in production!
       'your_jwt_secret', // Default secret for testing
-    { expiresIn: '1h' },
+    { expiresIn: '1d' },
   );
 
   // 4. Respond with token (and user info if you like, but never password)

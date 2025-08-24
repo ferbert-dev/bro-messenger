@@ -1,8 +1,6 @@
 import userService from '../userService';
-import { IUser, User } from '../../models/userModel';
+import { User } from '../../models/userModel';
 import { HttpError } from '../../utils/httpError';
-import bcrypt from 'bcryptjs';
-import { string } from 'zod';
 jest.mock('../../models/userModel', () => {
   const mockSave = jest.fn();
   const mockFindById = jest.fn();

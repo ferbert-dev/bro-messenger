@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { logger } from '../middleware/logger';
+import { logger } from '../utils/logger';
 export const connectDB = async (): Promise<void> => {
   const MONGO_URI = process.env.MONGO_URI;
   if (!MONGO_URI) {

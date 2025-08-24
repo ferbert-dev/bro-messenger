@@ -21,8 +21,8 @@ A RESTful API for managing users, built with **Express.js**, **Mongoose**, and *
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/<your-username>/message-service.git
-   cd message-service
+   git@github.com:ferbert-dev/bro-messager-api.git
+   cd bro-messager-api
    ```
 
 2. Install dependencies:

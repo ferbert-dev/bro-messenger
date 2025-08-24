@@ -8,21 +8,26 @@ if (fs.existsSync('./.env.local')) {
 } else {
   dotenv.config(); // Load .env before anything else
 }
-
+import http from 'http';
 import app from './app';
 import { connectDB } from './configs/db';
 import { logger } from './utils/logger';
+import { initWebSocket } from './services/wsService';
 
 const PORT = process.env.PORT || 3001;
 
 const startServer = async () => {
   try {
     await connectDB();
+    // Create HTTP server from Express app
+    const server = http.createServer(app);
 
-    const server = app.listen(PORT, () => {
-      logger.info(`🚀 Server running on port ${PORT}`);
+    // Init WebSocket server (separate module)
+    initWebSocket(server); //initializes and stores internally
+
+    server.listen(PORT, () => {
+      logger.info(`🚀 HTTP+WS listening on http://localhost:${PORT}`);
     });
-
     return server;
   } catch (error) {
     logger.error('❌ Failed to start server:', error);
