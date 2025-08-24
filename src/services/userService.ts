@@ -9,7 +9,9 @@ export const getAllUsers = async () => {
   return await User.find();
 };
 
-export const getOneByEmail = async (emailData: string): Promise<IUserDoc | null> => {
+export const getOneByEmail = async (
+  emailData: string,
+): Promise<IUserDoc | null> => {
   return User.findOne({ email: emailData }).lean<IUserDoc>();
 };
 
@@ -28,7 +30,7 @@ export const createUser = async (userData: IUserCreate) => {
     await checkIfUserExistBeEmail(email);
 
     // Hash password
-    const hashedPassword = await authService.hashPassword(userData.password!!)
+    const hashedPassword = await authService.hashPassword(userData.password!!);
 
     const user = new User({
       email: email,
@@ -49,7 +51,7 @@ export const createUser = async (userData: IUserCreate) => {
   }
 };
 
-export const getUserById = async (id: string) : Promise<IUserDoc | null>  => {
+export const getUserById = async (id: string): Promise<IUserDoc | null> => {
   return await User.findById(id);
 };
 

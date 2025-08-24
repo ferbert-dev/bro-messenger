@@ -3,8 +3,11 @@ import userService from '../services/userService';
 import { HttpError } from '../utils/httpError';
 import { AuthRequest } from '../middleware/authMiddleware';
 import { UserResponseDto } from '../dtos/userResponse.dto';
-import {USER_NOT_FOUND, NO_CONTENT, FAILED_TO_CREATE_USER
-} from '../common/constants'
+import {
+  USER_NOT_FOUND,
+  NO_CONTENT,
+  FAILED_TO_CREATE_USER,
+} from '../common/constants';
 import { IUserDoc } from '../models/userModel';
 
 export const getUsers = async (req: Request, res: Response) => {
@@ -29,7 +32,7 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const getMyProfile = async (req: AuthRequest, res: Response) => {
   const userId = req.user?.userId;
-  const user : IUserDoc | null = await userService.getUserById(userId);
+  const user: IUserDoc | null = await userService.getUserById(userId);
   if (!user) {
     throw new HttpError(404, USER_NOT_FOUND);
   }

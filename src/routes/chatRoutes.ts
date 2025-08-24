@@ -1,9 +1,7 @@
 import express from 'express';
 import * as chatController from '../controllers/chatController';
 import { asyncHandler } from '../utils/asyncHandler';
-import {
-  authenticateToken,
-} from '../middleware/authMiddleware';
+import { authenticateToken } from '../middleware/authMiddleware';
 
 const router = express.Router();
 

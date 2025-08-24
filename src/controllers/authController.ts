@@ -1,7 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import userService from '../services/userService';
 import { IUserDoc, IUserCreate, LoginUserData } from '../models/userModel';
-import { USER_CREATED_MESSAGE, INVALID_EMAIL_OR_PASSWORD } from '../common/constants';
+import {
+  USER_CREATED_MESSAGE,
+  INVALID_EMAIL_OR_PASSWORD,
+} from '../common/constants';
 import authService from '../services/authService';
 
 export const registerUser = async (req: Request, res: Response) => {
@@ -29,7 +32,7 @@ export const loginUser = async (
   }
 
   // 2. Compare the password (hashed)
-  const isMatch = authService.comparePassword(user.password, password)
+  const isMatch = authService.comparePassword(user.password, password);
 
   if (!isMatch) {
     return res.status(401).json({ message: INVALID_EMAIL_OR_PASSWORD });
@@ -37,11 +40,11 @@ export const loginUser = async (
 
   // 3. Create JWT token
   const loginUser: LoginUserData = {
-  id: user._id.toString(),
-  email: user.email!,
-  role: user.role!,
+    id: user._id.toString(),
+    email: user.email!,
+    role: user.role!,
   };
-  // 3. Create JWT token  
+  // 3. Create JWT token
 
   const token = await authService.createUserToken(loginUser);
 

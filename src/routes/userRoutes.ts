@@ -23,7 +23,7 @@ router.put(
   authenticateToken,
   asyncHandler(userController.updateUserById),
 );
-router.bind
+router.bind;
 //admin endpoints
 router.delete(
   '/:id',
@@ -39,6 +39,6 @@ router.get(
   asyncHandler(userController.getUserById),
 ); // validate only the ID
 
-router.use("/me/chats/", chatRoutes);
+router.use('/me/chats/', chatRoutes);
 
 export default router;

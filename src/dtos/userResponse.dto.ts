@@ -30,5 +30,3 @@ export class UserWithoutRoleResponseDto {
     this.name = user.name;
   }
 }
-
-

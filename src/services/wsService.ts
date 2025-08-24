@@ -60,7 +60,7 @@ export function initWebSocket(server: Server, path = '/ws') {
       }
 
       // 3) Verify JWT
-      const payload :JwtPayload = authService.verifyToken<JwtPayload>(token);
+      const payload: JwtPayload = authService.verifyToken<JwtPayload>(token);
       if (!payload?.userId) {
         socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
         socket.destroy();

@@ -3,7 +3,7 @@ import { Chat, IChat } from '../models/chatModel';
 import { Types } from 'mongoose';
 import { ensureObjectId } from '../utils/objectIdValidator';
 import { User } from '../models/userModel';
-import{ CHAT_NOT_FOUND, USER_NOT_FOUND} from '../common/constants'
+import { CHAT_NOT_FOUND, USER_NOT_FOUND } from '../common/constants';
 
 export const getAllChats = async () => {
   return await Chat.find().populate('participants admins', 'name email').lean();
@@ -11,7 +11,9 @@ export const getAllChats = async () => {
 
 export const getMyChats = (userIdRaw: string): Promise<IChat[]> => {
   const id = ensureObjectId(userIdRaw);
-  return Chat.find({ $or: [{ admins: id }, { participants: id }] }).populate('participants admins', 'name email').lean();
+  return Chat.find({ $or: [{ admins: id }, { participants: id }] })
+    .populate('participants admins', 'name email')
+    .lean();
 };
 
 export async function createChat(data: CreateChatRequest): Promise<IChat> {
@@ -30,7 +32,10 @@ export async function createChat(data: CreateChatRequest): Promise<IChat> {
       admins: adminIds,
       participants: allParticipants,
     });
-    const populatedChat = createdChat.populate('participants admins', 'name email');
+    const populatedChat = createdChat.populate(
+      'participants admins',
+      'name email',
+    );
     return populatedChat;
   } catch (err) {
     // Pass other errors up

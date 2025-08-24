@@ -1,6 +1,5 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
 
-
 export interface IUser extends Document {
   name: string;
   age?: number;
@@ -10,7 +9,7 @@ export interface IUser extends Document {
 }
 
 export interface IUserDoc extends IUser {
-  _id: Types.ObjectId;      
+  _id: Types.ObjectId;
 }
 
 export type IUserCreate = IUser;
@@ -20,7 +19,6 @@ export type LoginUserData = {
   email: string;
   role: string;
 };
-
 
 const userSchema = new Schema(
   {

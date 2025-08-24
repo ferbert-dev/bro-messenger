@@ -1,4 +1,4 @@
-import { UserWithoutRoleResponseDto } from "./userResponse.dto";
+import { UserWithoutRoleResponseDto } from './userResponse.dto';
 
 export interface ChatResponse {
   id: string;
@@ -20,8 +20,9 @@ export class ChatResponseDto implements ChatResponse {
       ? chat.admins.map((admin: any) => new UserWithoutRoleResponseDto(admin))
       : [];
     this.members = Array.isArray(chat.participants)
-      ? chat.participants.map((member: any) => new UserWithoutRoleResponseDto(member))
+      ? chat.participants.map(
+          (member: any) => new UserWithoutRoleResponseDto(member),
+        )
       : [];
   }
 }
-
