@@ -41,8 +41,7 @@ export const loginUser = async (
       email: user.email,
       role: user.role, // Include role for authorization
     },
-    process.env.JWT_SECRET || // Use env var in production!
-      'your_jwt_secret', // Default secret for testing
+    process.env.JWT_SECRET!, 
     { expiresIn: '1d' },
   );
 

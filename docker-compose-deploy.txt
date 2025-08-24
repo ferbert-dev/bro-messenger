@@ -1,7 +1,7 @@
 services:
   api:
     build: .
-    container_name: message-server-api
+    container_name: bro-messager-api
     ports:
       - "3005:3005"
     env_file:

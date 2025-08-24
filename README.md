@@ -38,8 +38,9 @@ A RESTful API for managing users, built with **Express.js**, **Mongoose**, and *
    MONGO_INITDB_DATABASE=message-db
    NODE_ENV=development
    MONGO_URI=mongodb://admin:admin-secret@localhost:27017/message-db?authSource=admin
+   JWT_SECRET =<your_jwt_secret>
    ```
-
+4. You can test your JWT secret for testing
 ### Running the Server
 Notes: It is requered to have a docker insatlled!
 Start the development server and create docker contaiener with DB :

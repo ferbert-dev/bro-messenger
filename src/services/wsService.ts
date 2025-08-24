@@ -50,7 +50,7 @@ export function initWebSocket(server: Server, path = '/ws') {
         socket.destroy();
         return;
       }
-
+     
       // 2) Extract token (Authorization: Bearer xxx OR ?token=)
       const token = extractToken(req);
       if (!token) {
@@ -60,7 +60,7 @@ export function initWebSocket(server: Server, path = '/ws') {
       }
 
       // 3) Verify JWT
-      const payload = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+      const payload = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload; 
       if (!payload?.userId) {
         socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
         socket.destroy();
