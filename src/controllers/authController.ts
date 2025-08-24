@@ -41,7 +41,7 @@ export const loginUser = async (
       email: user.email,
       role: user.role, // Include role for authorization
     },
-    process.env.JWT_SECRET!, 
+    process.env.JWT_SECRET!,
     { expiresIn: '1d' },
   );
 
