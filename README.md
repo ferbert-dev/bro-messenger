@@ -14,7 +14,7 @@ A RESTful API for managing users, built with **Express.js**, **Mongoose**, and *
 
 ### Prerequisites
 
-- Node.js (v18+ recommended)
+- Node.js (v22+ recommended)
 - MongoDB database (local with docker or Atlas)
 
 ### Installation
