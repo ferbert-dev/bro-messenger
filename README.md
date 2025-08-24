@@ -1,4 +1,4 @@
-# message-service
+# bro-messager-api
 
 A RESTful API for managing users, built with **Express.js**, **Mongoose**, and **Zod** for schema validation.
 
