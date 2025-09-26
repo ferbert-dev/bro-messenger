@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login / Sign Up</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <main class="wrap">
+    <div class="art" style="background-image:url('./assets/main_pucture.svg'); " aria-label="Illustration"></div>
+
+    <section class="card" aria-labelledby="welcome">
+      <h1 class="title" id="welcome">Identify Yourself!</h1>
+      <p class="subtitle">Pick a name. We promise it's easier than debugging a CSS issue.</p>
+
+      <div id="msg" class="msg" role="status" aria-live="polite"></div>
+
+      <input type="radio" name="auth-tab" id="tab-login" checked>
+      <input type="radio" name="auth-tab" id="tab-signup">
+
+      <div class="tabs" role="tablist" aria-label="Auth tabs">
+        <label class="tab" for="tab-login" role="tab" aria-controls="panel-login" aria-selected="true">Log in</label>
+        <label class="tab" for="tab-signup" role="tab" aria-controls="panel-signup" aria-selected="false">Sign up</label>
+      </div>
+
+      <div class="panels">
+        <form class="panel panel-login" id="login-form" method="post" action="/api/auth/login">
+          <div class="field">
+            <label for="login-email">Email</label>
+            <input class="input" id="login-email" name="email" type="email" placeholder="lisa.ferbert@gmx.de" required>
+          </div>
+          <div class="field">
+            <label for="login-password">Password</label>
+            <input class="input" id="login-password" name="password" type="password" placeholder="••••••••" required>
+          </div>
+          <button class="btn" type="submit">Login</button>
+        </form>
+
+        <form class="panel panel-signup" id="signup-form" method="post" action="/api/auth/register">
+          <div class="field">
+            <label for="signup-name">Name</label>
+            <input class="input" id="signup-name" name="name" type="text" placeholder="Your nickname" required>
+          </div>
+          <div class="field">
+            <label for="signup-age">Age (optional)</label>
+            <input class="input" id="signup-age" name="age" type="number" placeholder="18">
+          </div>
+          <div class="field">
+            <label for="signup-email">Email</label>
+            <input class="input" id="signup-email" name="email" type="email" placeholder="example@gmail.com" required>
+          </div>
+          <div class="field">
+            <label for="signup-password">Password</label>
+            <input class="input" id="signup-password" name="password" type="password" placeholder="Create a password" minlength="8" required>
+          </div>
+          <button class="btn" type="submit">Create account</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script src="../js/app.js"></script>
+</body>
+</html>
