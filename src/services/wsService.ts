@@ -18,7 +18,7 @@ type WsUserMeta = {
   userId: string;
   email?: string;
   role?: string;
-  chatId: string;
+  //chatId: string;
 };
 
 // ---- State ----
@@ -27,8 +27,14 @@ let wss: WebSocketServer | null = null;
 // userId -> ws
 const clients = new Map<string, WebSocket>();
 
-// chatId -> Set<userId>
-const chatParticipants = new Map<string, Set<string>>();
+//// chatId -> Set<userId>
+//const chatParticipants = new Map<string, Set<string>>();
+
+// (optional) if you allow multiple tabs per user, change to Map<string, Set<WebSocket>>
+const userSockets = new Map<string, WebSocket>();     // userId -> ws
+const userSubscriptions = new Map<string, Set<string>>(); // userId -> Set<chatId>
+const chatSubscribers = new Map<string, Set<string>>();   // chatId -> Set<userId>
+
 
 // ---- Public API ----
 export function initWebSocket(server: Server, path = '/ws') {
@@ -40,13 +46,6 @@ export function initWebSocket(server: Server, path = '/ws') {
       const url = new URL(req.url || '', 'http://localhost');
       if (url.pathname !== path) {
         socket.write('HTTP/1.1 404 Not Found\r\n\r\n');
-        socket.destroy();
-        return;
-      }
-      // 1) Extract params
-      const chatId = url.searchParams.get('chatId');
-      if (!chatId) {
-        socket.write('HTTP/1.1 400 Bad Request\r\n\r\nchatId is required');
         socket.destroy();
         return;
       }
@@ -67,26 +66,12 @@ export function initWebSocket(server: Server, path = '/ws') {
         return;
       }
 
-      // 4) Check chat exists & membership
-      const chat = await getChat(chatId);
-      if (!chat) {
-        socket.write('HTTP/1.1 404 Not Found\r\n\r\nChat not found');
-        socket.destroy();
-        return;
-      }
-      if (!isChatParticipant(chat, payload.userId)) {
-        socket.write('HTTP/1.1 403 Forbidden\r\n\r\nNot a member of this chat');
-        socket.destroy();
-        return;
-      }
-
-      // 5) Accept upgrade and attach metadata
+      // 4) Accept upgrade and attach metadata
       wss!.handleUpgrade(req, socket, head, (ws) => {
         const meta: WsUserMeta = {
           userId: payload.userId,
           email: payload.email,
           role: payload.role,
-          chatId,
         };
         (ws as any).user = meta; // attach metadata for later
         wss!.emit('connection', ws, req);
@@ -100,63 +85,59 @@ export function initWebSocket(server: Server, path = '/ws') {
 
   // Normal WS usage after connection accepted
   wss.on('connection', async (ws: WebSocket) => {
-    const user = (ws as any).user as WsUserMeta;
-    const { userId, chatId } = user;
-
-    // Track connections
-    clients.set(userId, ws);
-    addToMapSet(chatParticipants, chatId, userId);
-    logger.info(`🔌 WS connected: user=${userId} chat=${chatId}`);
-
-    // Optional: greet
-    safeSend(ws, JSON.stringify({ type: 'welcome', chatId }));
-
-    const messages = await getAllMessages(chatId);
-    messages?.forEach((m) => {
-      safeSend(
-        ws,
-        JSON.stringify({
-          type: 'chat:message',
-          chatId,
-          author: m.author,
-          content: m.content,
-          createdAt: m.createdAt,
-        }),
-      );
-    });
+    const { userId } = (ws as any).user as WsUserMeta;
+    // one-socket-per-user (replace existing if reconnects)
+    const prev = userSockets.get(userId);
+    if (prev && prev !== ws) {
+      try { 
+        prev.close(1000, "Replaced by new connection"); 
+      } catch {
+      }
+       userSockets.set(userId, ws);
+    }
+    safeSend(ws, JSON.stringify({ type: "welcome", userId }));
 
     // Incoming messages
     ws.on('message', async (buf) => {
-      const text = buf.toString();
-      logger.info(`WS msg from ${userId} (${chatId}): ${text}`);
+ let msg: any;
+      try { msg = JSON.parse(buf.toString()); } catch { return; }
+      switch (msg.type) {
+        case "subscribe":
+          if (!msg.chatId) return;
+          await subscribeUserToChat(userId, msg.chatId, ws);
+          break;
 
-      // Save the message to DB
-      const saved: IMessage = await saveMessage(userId, chatId, text);
+        case "unsubscribe":
+          if (!msg.chatId) return;
+          unsubscribeUserFromChat(userId, msg.chatId);
+          break;
 
-      // Broadcast to all members of this chat
-      broadcastToChat(
-        chatId,
-        JSON.stringify({
-          type: 'chat:message',
-          chatId,
-          authorId: userId,
-          content: saved.content,
-          createdAt: saved.createdAt,
-        }),
-      );
+        case "message":
+          if (!msg.chatId || typeof msg.content !== "string") return;
+          await handleIncomingChatMessage(userId, msg.chatId, msg.content);
+          break;
+
+        default:
+          // ignore unknown
+          break;
+      }
     });
 
     // Disconnect
     ws.on('close', () => {
-      clients.delete(userId);
-      removeFromMapSet(chatParticipants, chatId, userId);
-      logger.info(`❌ WS disconnected: user=${userId} chat=${chatId}`);
+  // remove this user from all subscribed chats
+      const chats = userSubscriptions.get(userId);
+      if (chats) {
+        for (const chatId of chats) {
+          removeFromMapSet(chatSubscribers, chatId, userId);
+        }
+      }
+      userSubscriptions.delete(userId);
+      userSockets.delete(userId);
+      logger.info(`WS closed user=${userId}`);
     });
-
     // Errors
-    ws.on('error', (error) => {
-      logger.error(`WS error for user=${userId}: ${String(error)}`);
-    });
+    ws.on("error", (e) => logger.error(`WS error user=${userId}: ${String(e)}`));
   });
 
   return wss;
@@ -168,20 +149,68 @@ export function getWss() {
   return wss;
 }
 
+// ---- Messaging / subscription helpers ----
+async function subscribeUserToChat(userId: string, chatId: string, ws: WebSocket) {
+  const chat = await getChat(chatId);
+  if (!chat) return safeSend(ws, errMsg("chat:not_found", chatId));
+  if (!isChatParticipant(chat, userId)) return safeSend(ws, errMsg("chat:forbidden", chatId));
+
+  addToMapSet(userSubscriptions, userId, chatId);
+  addToMapSet(chatSubscribers, chatId, userId);
+
+  safeSend(ws, JSON.stringify({ type: "subscribed", chatId }));
+}
+
+function unsubscribeUserFromChat(userId: string, chatId: string) {
+  removeFromMapSet(userSubscriptions, userId, chatId);
+  removeFromMapSet(chatSubscribers, chatId, userId);
+
+  const ws = userSockets.get(userId);
+  if (ws) safeSend(ws, JSON.stringify({ type: "unsubscribed", chatId }));
+}
+
+async function handleIncomingChatMessage(userId: string, chatId: string, content: string) {
+  // ensure user is subscribed & a real member
+  const subs = userSubscriptions.get(userId);
+  if (!subs?.has(chatId)) return; // ignore or send error
+
+  const chat = await getChat(chatId);
+  if (!chat || !isChatParticipant(chat, userId)) return;
+  //TODO save message parallel to db, do not need to wait
+  const saved: IMessage = await saveMessage(userId, chatId, content);
+  const payload = JSON.stringify({
+    type: "chat:message",
+    chatId,
+    authorId: userId,
+    content: saved.content,
+    createdAt: saved.createdAt,
+  });
+  // broadcast to all subscribers of this chat
+  broadcastToChat(chatId, payload);
+}
+
+export function broadcastToChat(chatId: string, msg: string) {
+  const userIds = chatSubscribers.get(chatId);
+  if (!userIds?.size) return;
+  for (const uid of userIds) {
+    const ws = userSockets.get(uid);
+    if (ws) safeSend(ws, msg);
+  }
+}
+
+// ---- Utilities ---
 export function broadcastAll(msg: string) {
   const server = getWss();
   for (const client of server.clients) safeSend(client, msg);
 }
 
-// Send to all sockets in one chat
-export function broadcastToChat(chatId: string, msg: string) {
-  const userIds = chatParticipants.get(chatId);
-  if (!userIds?.size) return;
-
-  for (const userId of userIds) {
-    const ws = clients.get(userId);
-    if (ws) safeSend(ws, msg);
-  }
+function errMsg(code: string, chatId?: string) {
+  return JSON.stringify({
+    type: "error",
+    code,              // e.g. "chat:not_found"
+    chatId,            // optional, useful context
+    timestamp: new Date().toISOString()
+  });
 }
 
 // ---- Internals ----
