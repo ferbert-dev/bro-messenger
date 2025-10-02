@@ -5,6 +5,7 @@ import authRoutes from './routes/authRoutes';
 import chatRoutes from './routes/chatRoutes';
 import errorHandler from './middleware/errorHandler';
 import { staticPath } from './middleware/staticPathImport';
+import { ensureUploadsDir, uploadsDir } from './utils/avatarStorage';
 
 const app = express();
 
@@ -23,10 +24,12 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 // Serve static files like logo.png
 app.use(staticPath);
+ensureUploadsDir();
+app.use('/uploads', express.static(uploadsDir));
 
 app.use('/', statusRoutes);
 

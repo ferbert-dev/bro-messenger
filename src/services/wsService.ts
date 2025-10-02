@@ -224,14 +224,16 @@ async function handleIncomingChatMessage(
   //if (!chat || !isChatParticipant(chat, userId)) return;
   //TODO save message parallel to db, do not need to wait
   const saved: IMessage = await saveMessage(userId, chatId, content);
-  const populated = await saved.populate('author', 'name');
+  const populated = await saved.populate('author', 'name avatarUrl');
   const authorDoc = populated.author as any; // comes back as User doc
   const authorName = authorDoc?.name ?? null;
+  const authorAvatar = authorDoc?.avatarUrl ?? null;
   const payload = JSON.stringify({
     type: 'chat:message',
     chatId,
     authorId: userId,
     authorName: authorName,
+    authorAvatar,
     content: populated.content,
     createdAt: populated.createdAt,
   });

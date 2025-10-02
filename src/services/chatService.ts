@@ -6,13 +6,15 @@ import { User } from '../models/userModel';
 import { CHAT_NOT_FOUND, USER_NOT_FOUND } from '../common/constants';
 
 export const getAllChats = async () => {
-  return await Chat.find().populate('participants admins', 'name email').lean();
+  return await Chat.find()
+    .populate('participants admins', 'name email avatarUrl')
+    .lean();
 };
 
 export const getMyChats = (userIdRaw: string): Promise<IChat[]> => {
   const id = ensureObjectId(userIdRaw);
   return Chat.find({ $or: [{ admins: id }, { participants: id }] })
-    .populate('participants admins', 'name email')
+    .populate('participants admins', 'name email avatarUrl')
     .lean();
 };
 
@@ -31,10 +33,11 @@ export async function createChat(data: CreateChatRequest): Promise<IChat> {
       title,
       admins: adminIds,
       participants: allParticipants,
+      avatarUrl: data.avatarUrl,
     });
     const populatedChat = createdChat.populate(
       'participants admins',
-      'name email',
+      'name email avatarUrl',
     );
     return populatedChat;
   } catch (err) {
@@ -65,7 +68,7 @@ export async function addMember(
   // 3) Save (triggers pre('save') hooks, validation, etc.)
   await chat.save();
   // 4) Populate and return
-  await chat.populate('participants admins', 'name email');
+  await chat.populate('participants admins', 'name email avatarUrl');
   return chat;
 }
 
@@ -85,12 +88,27 @@ export async function removeMember(
   chat.admins.pull(userId);
   // 3) Save (runs validation + pre('save') middleware)
   const saveChat = await chat.save();
-  return saveChat.populate('participants admins', 'name email');
+  return saveChat.populate('participants admins', 'name email avatarUrl');
 }
 
 export async function getChatById(chatIdRaw: string): Promise<IChat | null> {
   const chatId = ensureObjectId(chatIdRaw);
-  const chat = await Chat.findById(chatId).lean<IChat>().exec();
+  const chat = await Chat.findById(chatId)
+    .populate('participants admins', 'name email avatarUrl')
+    .lean<IChat>()
+    .exec();
+  return chat;
+}
+
+export async function updateChatAvatar(
+  chatIdRaw: string,
+  avatarUrl: string | null,
+) {
+  const chatId = ensureObjectId(chatIdRaw);
+  const chat = await Chat.findById(chatId);
+  if (!chat) throw new HttpError(404, CHAT_NOT_FOUND);
+  chat.avatarUrl = avatarUrl ?? undefined;
+  await chat.save();
   return chat;
 }
 
@@ -101,6 +119,7 @@ export const chatService = {
   removeMember,
   createChat,
   getChatById,
+  updateChatAvatar,
 };
 
 export default chatService;

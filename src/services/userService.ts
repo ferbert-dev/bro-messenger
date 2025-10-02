@@ -55,7 +55,7 @@ export const getUserById = async (id: string): Promise<IUserDoc | null> => {
   return await User.findById(id);
 };
 
-const allowedUserUpdateFields = ['name', 'age'] as const;
+const allowedUserUpdateFields = ['name', 'age', 'avatarUrl'] as const;
 type AllowedUserUpdateField = (typeof allowedUserUpdateFields)[number];
 type UserUpdateDto = Partial<Pick<IUser, AllowedUserUpdateField>>;
 
@@ -84,6 +84,19 @@ export const updateUserById = async (id: string, userData: UserUpdateDto) => {
   return savedUser;
 };
 
+export const updateUserAvatar = async (
+  id: string,
+  avatarUrl: string | null,
+) => {
+  const updatePayload: UserUpdateDto = {};
+  if (avatarUrl) {
+    (updatePayload as any).avatarUrl = avatarUrl;
+  } else {
+    (updatePayload as any).avatarUrl = undefined;
+  }
+  return await updateUserById(id, updatePayload);
+};
+
 export const deleteUserById = async (id: string) => {
   return await User.findByIdAndDelete(id);
 };
@@ -96,6 +109,7 @@ export const userService = {
   deleteUserById,
   getOneByEmail,
   checkIfUserExistBeEmail,
+  updateUserAvatar,
 };
 
 export default userService;

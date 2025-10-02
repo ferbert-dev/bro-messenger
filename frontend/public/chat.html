@@ -57,6 +57,11 @@
       <h3>Create Chat</h3>
       <label for="chatTitleInput">Title</label>
       <input id="chatTitleInput" type="text" placeholder="Enter chat title" />
+      <label for="chatAvatarInput">Chat image</label>
+      <div id="chatAvatarPreview" class="avatar-preview" aria-hidden="true">
+        <span>CH</span>
+      </div>
+      <input id="chatAvatarInput" type="file" accept="image/*" />
       <div class="modal-actions">
         <button id="createChatCancel" class="btn secondary" type="button">Cancel</button>
         <button id="createChatSave" class="btn" type="button">Save</button>
@@ -71,6 +76,11 @@
       <p id="profileEmail" class="modal-subtext"></p>
       <label for="profileNameInput">Display name</label>
       <input id="profileNameInput" type="text" placeholder="Enter your name" />
+      <label for="profileAvatarInput">Profile picture</label>
+      <div id="profileAvatarPreview" class="avatar-preview" aria-hidden="true">
+        <span>U</span>
+      </div>
+      <input id="profileAvatarInput" type="file" accept="image/*" />
       <div class="modal-actions">
         <button id="profileCancel" class="btn secondary" type="button">Cancel</button>
         <button id="profileSave" class="btn" type="button">Save</button>

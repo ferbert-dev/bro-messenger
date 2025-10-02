@@ -8,14 +8,27 @@ const router = express.Router();
 router.get('', authenticateToken, asyncHandler(chatController.getAllChats));
 
 router.get(
-  '/:chatId',
-  authenticateToken,
-  asyncHandler(chatController.getChatById),
-);
-router.get(
   '/:chatId/messages',
   authenticateToken,
   asyncHandler(chatController.getChatMessagesById),
+);
+
+router.get(
+  '/:chatId/avatar',
+  authenticateToken,
+  asyncHandler(chatController.getChatAvatar),
+);
+
+router.post(
+  '/:chatId/avatar',
+  authenticateToken,
+  asyncHandler(chatController.uploadChatAvatar),
+);
+
+router.get(
+  '/:chatId',
+  authenticateToken,
+  asyncHandler(chatController.getChatById),
 );
 router.post(
   '/:chatId/members',

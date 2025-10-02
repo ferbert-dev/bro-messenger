@@ -4,6 +4,7 @@
 
 const API_URL = 'http://localhost:3000/api/chats';
 const PROFILE_URL = 'http://localhost:3000/api/users/me';
+const AVATAR_URL = 'http://localhost:3000/api/users/me/avatar';
 const WS_BASE_URL = 'ws://localhost:3000/ws';
 
 const list = document.getElementById('chatList');
@@ -19,6 +20,8 @@ const chatTitleInput = document.getElementById('chatTitleInput');
 const createChatCancel = document.getElementById('createChatCancel');
 const createChatSave = document.getElementById('createChatSave');
 const createChatError = document.getElementById('createChatError');
+const chatAvatarInput = document.getElementById('chatAvatarInput');
+const chatAvatarPreview = document.getElementById('chatAvatarPreview');
 const profileBtn = document.getElementById('profileBtn');
 const profileAvatar = document.getElementById('profileAvatar');
 const profileModal = document.getElementById('profileModal');
@@ -27,6 +30,8 @@ const profileEmail = document.getElementById('profileEmail');
 const profileCancel = document.getElementById('profileCancel');
 const profileSave = document.getElementById('profileSave');
 const profileError = document.getElementById('profileError');
+const profileAvatarInput = document.getElementById('profileAvatarInput');
+const profileAvatarPreview = document.getElementById('profileAvatarPreview');
 const logoutBtn = document.getElementById('logoutBtn');
 const TOKEN_KEY = 'authToken';
 
@@ -39,6 +44,8 @@ const messageCache = new Map();
 let socket = null;
 const pendingSocketActions = [];
 let currentUserProfile = null;
+let pendingAvatarData = null;
+let pendingChatAvatarData = null;
 
 init();
 
@@ -54,11 +61,16 @@ function closeNewChatModal() {
   if (!newChatModal) return;
   newChatModal.classList.remove('open');
   newChatModal.setAttribute('aria-hidden', 'true');
+  pendingChatAvatarData = null;
 }
 
 function resetCreateChatModal() {
   if (chatTitleInput) chatTitleInput.value = '';
   if (createChatError) createChatError.textContent = '';
+  pendingChatAvatarData = null;
+  if (chatAvatarInput) chatAvatarInput.value = '';
+  const initials = 'CH';
+  setChatPreviewAvatar(null, initials);
 }
 
 function setCreateChatError(message) {
@@ -72,6 +84,12 @@ function openProfileModal() {
     profileNameInput.value = currentUserProfile?.name || currentUserProfile?.email || '';
   if (profileEmail)
     profileEmail.textContent = currentUserProfile?.email || '';
+  if (profileAvatarInput) profileAvatarInput.value = '';
+  pendingAvatarData = null;
+  const initials = getInitials(
+    currentUserProfile?.name || currentUserProfile?.email || 'User',
+  );
+  setProfilePreview(normalizeAvatarUrl(currentUserProfile?.avatarUrl), initials);
   profileModal.classList.add('open');
   profileModal.setAttribute('aria-hidden', 'false');
   profileNameInput?.focus();
@@ -81,10 +99,93 @@ function closeProfileModal() {
   if (!profileModal) return;
   profileModal.classList.remove('open');
   profileModal.setAttribute('aria-hidden', 'true');
+  pendingAvatarData = null;
+  if (profileAvatarInput) profileAvatarInput.value = '';
 }
 
 function setProfileError(message) {
   if (profileError) profileError.textContent = message || '';
+}
+
+function normalizeAvatarUrl(url) {
+  if (!url) return null;
+  if (/^https?:\/\//i.test(url)) return url;
+  if (url.startsWith('//')) return `${window.location.protocol}${url}`;
+  if (url.startsWith('/')) return `${window.location.origin}${url}`;
+  return `${window.location.origin}/${url}`;
+}
+
+function setProfileButtonAvatar(avatarUrl, initials) {
+  if (!profileBtn || !profileAvatar) return;
+  if (avatarUrl) {
+    profileBtn.classList.add('has-image');
+    const normalized = avatarUrl.startsWith('data:')
+      ? avatarUrl
+      : normalizeAvatarUrl(avatarUrl);
+    const safeUrl = normalized.replace(/"/g, '\"');
+    profileBtn.style.backgroundImage = `url("${safeUrl}")`;
+    profileAvatar.textContent = '';
+  } else {
+    profileBtn.classList.remove('has-image');
+    profileBtn.style.backgroundImage = '';
+    profileAvatar.textContent = initials || 'U';
+  }
+}
+
+function setProfilePreview(imageSrc, initials) {
+  if (!profileAvatarPreview) return;
+  profileAvatarPreview.innerHTML = '';
+  profileAvatarPreview.style.backgroundImage = '';
+  if (imageSrc) {
+    const normalized = imageSrc.startsWith('data:')
+      ? imageSrc
+      : normalizeAvatarUrl(imageSrc);
+    const img = document.createElement('img');
+    img.src = normalized;
+    img.alt = 'Avatar preview';
+    profileAvatarPreview.appendChild(img);
+  } else {
+    const span = document.createElement('span');
+    span.textContent = initials || 'U';
+    profileAvatarPreview.appendChild(span);
+  }
+}
+
+function setChatPreviewAvatar(imageSrc, initials) {
+  if (!chatAvatarPreview) return;
+  chatAvatarPreview.innerHTML = '';
+  chatAvatarPreview.style.backgroundImage = '';
+  if (imageSrc) {
+    const normalized = imageSrc.startsWith('data:')
+      ? imageSrc
+      : normalizeAvatarUrl(imageSrc);
+    const img = document.createElement('img');
+    img.src = normalized;
+    img.alt = 'Chat avatar preview';
+    chatAvatarPreview.appendChild(img);
+  } else {
+    const span = document.createElement('span');
+    span.textContent = initials || 'CH';
+    chatAvatarPreview.appendChild(span);
+  }
+}
+
+function setChatHeaderAvatar(avatarUrl, title) {
+  if (!active_chat_image) return;
+  const initials = getInitials(title || 'Chat');
+  active_chat_image.innerHTML = '';
+  active_chat_image.style.backgroundImage = '';
+  if (avatarUrl) {
+    const img = document.createElement('img');
+    const normalized = avatarUrl.startsWith('data:')
+      ? avatarUrl
+      : normalizeAvatarUrl(avatarUrl);
+    img.src = normalized;
+    img.alt = initials;
+    active_chat_image.appendChild(img);
+  } else {
+    active_chat_image.textContent = initials;
+  }
 }
 
 async function loadCurrentUser(token) {
@@ -103,7 +204,9 @@ async function loadCurrentUser(token) {
     currentUserProfile = data;
     const source = data?.name || data?.email;
     const initials = source ? getInitials(source) : 'U';
-    if (profileAvatar) profileAvatar.textContent = initials || 'U';
+    const avatarUrl = normalizeAvatarUrl(data?.avatarUrl);
+    setProfileButtonAvatar(avatarUrl, initials);
+    setProfilePreview(avatarUrl, initials);
     if (profileEmail) profileEmail.textContent = data?.email || '';
     localStorage.setItem('user', JSON.stringify(data));
   } catch (err) {
@@ -210,21 +313,6 @@ function sendMessage(chatId, content) {
   });
 }
 
-function handleSocketMessage(event) {
-  try {
-    const data = JSON.parse(event.data);
-    if (data.type === 'message' && data.chatId) {
-      const existing = messageCache.get(data.chatId) || [];
-      messageCache.set(data.chatId, [...existing, data]);
-      if (data.chatId === activeChatId) {
-        renderMessages(messageCache.get(data.chatId));
-      }
-    }
-  } catch (err) {
-    console.error('Failed to parse WS message', err);
-  }
-}
-
 async function init() {
   showStatus('Loading chats…');
   try {
@@ -255,7 +343,11 @@ async function init() {
     // Expecting an array of { id, title, admins, members }
     if (!Array.isArray(data))
       throw new Error('Unexpected response format: expected an array');
-    chats = data.map((c) => ({ id: c.id, title: c.title || 'Untitled chat' }));
+    chats = data.map((c) => ({
+      id: c.id,
+      title: c.title || 'Untitled chat',
+      avatarUrl: c.avatarUrl || null,
+    }));
     filtered = chats.slice();
     
     renderList(filtered);
@@ -281,14 +373,32 @@ function renderList(items) {
   items.forEach((c, i) => {
     const el = document.createElement('div');
     el.className = 'chat-item' + (i === 0 ? ' active' : '');
+    el.dataset.chatId = c.id;
+
     const initials = getInitials(c.title);
-    el.innerHTML = `
-      <div class="avatar" aria-hidden="true">${initials}</div>
-      <div class="ci-main">
-        <div class="ci-top"><span class="ci-name">${escapeHtml(c.title)}</span><span class="ci-time"></span></div>
-        <div class="ci-last" aria-hidden="true"></div>
-      </div>
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.setAttribute('aria-hidden', 'true');
+    if (c.avatarUrl) {
+      const img = document.createElement('img');
+      img.src = normalizeAvatarUrl(c.avatarUrl);
+      img.alt = initials;
+      avatar.appendChild(img);
+    } else {
+      avatar.textContent = initials;
+    }
+
+    const main = document.createElement('div');
+    main.className = 'ci-main';
+    main.innerHTML = `
+      <div class="ci-top"><span class="ci-name">${escapeHtml(
+        c.title,
+      )}</span><span class="ci-time"></span></div>
+      <div class="ci-last" aria-hidden="true"></div>
     `;
+
+    el.appendChild(avatar);
+    el.appendChild(main);
     el.addEventListener('click', () => {
       document
         .querySelectorAll('.chat-item')
@@ -319,11 +429,24 @@ async function loadChatDetails(chatId) {
     },
   });
 
-  if (!res.ok) return; // add your own error handling
+  if (!res.ok) {
+    const fallback = chats.find((c) => c.id === chatId);
+    const title = fallback?.title || 'Untitled chat';
+    if (active_chat_title) active_chat_title.textContent = title;
+    setChatHeaderAvatar(fallback?.avatarUrl || null, title);
+    return;
+  }
 
   const payload = await res.json();
-  active_chat_title.textContent = payload?.title || 'Untitled chat';
-  active_chat_image.textContent = getInitials(payload?.title);
+  const title = payload?.title || 'Untitled chat';
+  if (active_chat_title) active_chat_title.textContent = title;
+  setChatHeaderAvatar(payload?.avatarUrl || null, title);
+
+  chats = chats.map((c) =>
+    c.id === chatId
+      ? { ...c, title, avatarUrl: payload?.avatarUrl || c.avatarUrl || null }
+      : c,
+  );
 }
 
 async function loadMessagesForChat(chatId) {
@@ -367,15 +490,14 @@ async function loadMessagesForChat(chatId) {
 
     const payload = await res.json();
 
-    const data = Array.isArray(payload)
-      ? payload
-      : Array.isArray(payload)
-        ? payload
-        : [];
+    const rawList = Array.isArray(payload) ? payload : [];
+    const normalized = rawList
+      .map((item) => normalizeMessagePayload(item))
+      .filter((item) => item && item.type === 'chat:message');
 
-    messageCache.set(chatId, data);
+    messageCache.set(chatId, normalized);
     if (activeChatId === chatId) {
-      renderMessages(data);
+      renderMessages(normalized);
     }
   } catch (err) {
     if (activeChatId === chatId) {
@@ -385,36 +507,20 @@ async function loadMessagesForChat(chatId) {
 }
 
 function renderMessages(list) {
+  if (!messages) return;
   if (!Array.isArray(list) || list.length === 0) {
     renderMessagesStatus('No messages yet');
     return;
   }
 
   messages.innerHTML = '';
+  messages.dataset.state = 'content';
   const frag = document.createDocumentFragment();
 
-  list.forEach((msg) => {
-    console.log(msg);
-    const row = document.createElement('div');
-    const authorObj = msg?.author || {};
-    const authorId = msg?.authorId || authorObj?.id || authorObj?._id;
-    const authorName = authorObj?.name || msg?.authorName || 'Anonymous';
-    const timestamp = formatMessageTime(msg?.createdAt || msg?.updatedAt);
-
-    const content = msg?.content ?? '';
-
-    const isMine =
-      currentUserId && authorId && String(authorId) === String(currentUserId);
-
-    row.className = 'row' + (isMine ? ' me' : '');
-    row.innerHTML = `
-      <div class="bubble">
-        <strong>${escapeHtml(authorName)}</strong>
-        <div class="meta">${escapeHtml(timestamp)}</div>
-        <p>${escapeHtml(content)}</p>
-      </div>
-    `;
-    frag.appendChild(row);
+  list.forEach((raw) => {
+    const normalized = normalizeMessagePayload(raw);
+    if (!normalized || normalized.type !== 'chat:message') return;
+    frag.appendChild(buildMessageRow(normalized));
   });
 
   messages.appendChild(frag);
@@ -422,10 +528,14 @@ function renderMessages(list) {
 }
 
 function renderMessagesStatus(text) {
+  if (!messages) return;
+  messages.dataset.state = 'status';
   messages.innerHTML = `<div style="padding:12px 14px; color:#8b8f9c">${escapeHtml(text)}</div>`;
 }
 
 function renderMessagesError(text) {
+  if (!messages) return;
+  messages.dataset.state = 'status';
   messages.innerHTML = `<div style="padding:12px 14px; color:#b91c1c; background:#fff1f2; border-radius:12px; margin:8px">${escapeHtml(text)}</div>`;
 }
 
@@ -443,7 +553,7 @@ search?.addEventListener('input', (e) => {
 });
 
 function getInitials(title) {
-  if (!title) return 'C';
+  if (!title) return 'U';
   const parts = title.trim().split(/\s+/).slice(0, 2);
   return parts
     .map((p) => p[0])
@@ -453,49 +563,33 @@ function getInitials(title) {
 
 // --- Chat message UX (local echo) ---
 function addMessage(message) {
-  if (!message || !message.chatId || message.chatId !== activeChatId) return;
+  if (!messages) return;
+  const normalized = normalizeMessagePayload(message);
+  if (!normalized || !normalized.chatId) return;
 
-  if (message.type === 'chat:system') {
-    renderSystemNotice(message.content, message.createdAt);
+  if (normalized.type === 'chat:system') {
+    if (normalized.chatId === activeChatId) {
+      renderSystemNotice(normalized.content, normalized.createdAt);
+    }
     return;
   }
 
-  if (message.type !== 'chat:message') return;
+  const existing = messageCache.get(normalized.chatId) || [];
+  messageCache.set(normalized.chatId, [...existing, normalized]);
 
-  const trimmed = (message.content || '').trim();
-  if (!trimmed) return;
+  if (normalized.chatId !== activeChatId) return;
 
-  const createdAt = formatMessageTime(message.createdAt);
-  const authorName = message.authorName || 'Unknown';
+  if (messages.dataset.state === 'status') {
+    messages.innerHTML = '';
+    messages.dataset.state = 'content';
+  }
 
-  const entry = {
-    content: trimmed,
-    createdAt,
-    authorId: message.authorId,
-    authorName,
-    author: message.authorId ? { _id: message.authorId, name: authorName } : null,
-  };
-  const existing = messageCache.get(activeChatId) || [];
-  messageCache.set(activeChatId, [...existing, entry]);
-
-  const row = document.createElement('div');
-  const isMine =
-    currentUserId && message.authorId && String(message.authorId) === String(currentUserId);
-
-  row.className = 'row' + (isMine ? ' me' : '');
-  row.innerHTML = `
-    <div class="bubble">
-      <strong>${escapeHtml(authorName)}</strong>
-      <div class="meta">${escapeHtml(createdAt)}</div>
-      <p>${escapeHtml(trimmed)}</p>
-    </div>
-  `;
-
-  messages.appendChild(row);
+  messages.appendChild(buildMessageRow(normalized));
   messages.scrollTop = messages.scrollHeight;
 }
 
 function renderSystemNotice(content, createdAt) {
+  if (!messages) return;
   const text = (content || '').trim();
   if (!text) return;
 
@@ -508,8 +602,94 @@ function renderSystemNotice(content, createdAt) {
       <p>${escapeHtml(text)}</p>
     </div>
   `;
+  if (messages.dataset.state === 'status') {
+    messages.innerHTML = '';
+    messages.dataset.state = 'content';
+  }
   messages.appendChild(row);
   messages.scrollTop = messages.scrollHeight;
+}
+
+function normalizeMessagePayload(raw) {
+  if (!raw) return null;
+  const type = raw.type || 'chat:message';
+  const dropTypes = ['welcome', 'subscribed', 'unsubscribed', 'error'];
+  if (dropTypes.includes(type)) return null;
+  if (type === 'chat:system') {
+    return {
+      type,
+      chatId: raw.chatId || raw.chat || activeChatId,
+      content: raw.content || '',
+      createdAt: raw.createdAt || new Date().toISOString(),
+    };
+  }
+
+  const author = raw.author || {};
+  const chatValue = raw.chatId || raw.chat || activeChatId;
+  const chatId =
+    typeof chatValue === 'object'
+      ? chatValue?._id || chatValue?.id || chatValue?.chatId
+      : chatValue;
+  const resolvedChatId = chatId ? String(chatId) : null;
+  const resolvedAuthorId = raw.authorId || author.id || author._id || null;
+
+  return {
+    type: 'chat:message',
+    chatId: resolvedChatId,
+    authorId: resolvedAuthorId ? String(resolvedAuthorId) : null,
+    authorName: raw.authorName || author.name || 'Anonymous',
+    authorAvatar: raw.authorAvatar || author.avatarUrl || null,
+    content: raw.content ?? '',
+    createdAt: raw.createdAt || raw.updatedAt || new Date().toISOString(),
+  };
+}
+
+function buildMessageRow(message) {
+  const row = document.createElement('div');
+  const isMine =
+    currentUserId &&
+    message.authorId &&
+    String(message.authorId) === String(currentUserId);
+
+  row.className = 'row' + (isMine ? ' me' : '');
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.innerHTML = `
+    <strong>${escapeHtml(message.authorName)}</strong>
+    <div class="meta">${escapeHtml(formatMessageTime(message.createdAt))}</div>
+    <p>${escapeHtml(message.content)}</p>
+  `;
+
+  const initials = getInitials(message.authorName);
+  const avatarSource = message.authorAvatar || (isMine ? currentUserProfile?.avatarUrl : null);
+
+  if (!isMine) {
+    row.appendChild(createAvatarElement(avatarSource, initials));
+    row.appendChild(bubble);
+  } else {
+    row.appendChild(bubble);
+    row.appendChild(createAvatarElement(avatarSource, initials));
+  }
+
+  return row;
+}
+
+function createAvatarElement(avatarUrl, fallbackText) {
+  const node = document.createElement('div');
+  node.className = 'avatar-sm';
+  if (avatarUrl) {
+    const img = document.createElement('img');
+    const source = avatarUrl.startsWith('data:')
+      ? avatarUrl
+      : normalizeAvatarUrl(avatarUrl);
+    img.src = source;
+    img.alt = fallbackText || 'User avatar';
+    node.appendChild(img);
+  } else {
+    node.textContent = fallbackText || 'U';
+  }
+  return node;
 }
 
 function handleSend() {
@@ -540,6 +720,14 @@ profileModal?.addEventListener('click', (e) => {
   if (e.target === profileModal) closeProfileModal();
 });
 profileSave?.addEventListener('click', () => handleProfileSave());
+profileAvatarInput?.addEventListener('change', (e) => handleAvatarFileChange(e));
+chatAvatarInput?.addEventListener('change', (e) => handleChatAvatarFileChange(e));
+chatTitleInput?.addEventListener('input', () => {
+  if (!pendingChatAvatarData) {
+    const initials = getInitials(chatTitleInput.value || 'Chat');
+    setChatPreviewAvatar(null, initials);
+  }
+});
 
 async function handleCreateChat() {
   const titleValue = chatTitleInput?.value?.trim();
@@ -557,6 +745,13 @@ async function handleCreateChat() {
   setCreateChatError('');
   try {
     createChatSave?.setAttribute('disabled', 'true');
+    const body = {
+      title: titleValue,
+      participantIds: [],
+    };
+    if (pendingChatAvatarData) {
+      body.avatarImage = pendingChatAvatarData;
+    }
     const res = await fetch(API_URL, {
       method: 'POST',
       headers: {
@@ -564,10 +759,7 @@ async function handleCreateChat() {
         Authorization: `Bearer ${token}`,
         Accept: 'application/json',
       },
-      body: JSON.stringify({
-        title: titleValue,
-        participantIds: [],
-      }),
+      body: JSON.stringify(body),
     });
 
     if (!res.ok) {
@@ -586,6 +778,7 @@ async function handleCreateChat() {
     const newChat = {
       id: chatId,
       title: payload?.title || titleValue,
+      avatarUrl: payload?.avatarUrl || null,
     };
 
     chats = [newChat, ...chats.filter((c) => c.id !== chatId)];
@@ -593,6 +786,8 @@ async function handleCreateChat() {
     renderList(filtered);
     closeNewChatModal();
     messageCache.set(chatId, []);
+    pendingChatAvatarData = null;
+    if (chatAvatarInput) chatAvatarInput.value = '';
   } catch (err) {
     setCreateChatError(err.message || 'Failed to create chat');
   } finally {
@@ -616,6 +811,13 @@ async function handleProfileSave() {
   setProfileError('');
   try {
     profileSave?.setAttribute('disabled', 'true');
+    let uploadedAvatarUrl = currentUserProfile?.avatarUrl || null;
+    if (pendingAvatarData) {
+      uploadedAvatarUrl = await uploadAvatarImage(pendingAvatarData, token);
+      pendingAvatarData = null;
+      if (profileAvatarInput) profileAvatarInput.value = '';
+    }
+
     const body = { name: nameValue };
     if (currentUserProfile?.age != null) body.age = currentUserProfile.age;
 
@@ -641,13 +843,16 @@ async function handleProfileSave() {
       ...baseProfile,
       ...updated,
       name: updated?.name || nameValue,
+      avatarUrl: uploadedAvatarUrl || updated?.avatarUrl || baseProfile.avatarUrl,
     };
 
     localStorage.setItem('user', JSON.stringify(currentUserProfile));
 
     const source = currentUserProfile?.name || currentUserProfile?.email;
     const initials = source ? getInitials(source) : 'U';
-    if (profileAvatar) profileAvatar.textContent = initials || 'U';
+    const finalAvatarUrl = normalizeAvatarUrl(currentUserProfile?.avatarUrl);
+    setProfileButtonAvatar(finalAvatarUrl, initials);
+    setProfilePreview(finalAvatarUrl, initials);
     if (profileEmail) profileEmail.textContent = currentUserProfile?.email || '';
     closeProfileModal();
   } catch (err) {
@@ -655,6 +860,106 @@ async function handleProfileSave() {
   } finally {
     profileSave?.removeAttribute('disabled');
   }
+}
+
+async function uploadAvatarImage(imageData, token) {
+  const res = await fetch(AVATAR_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ image: imageData }),
+  });
+
+  if (!res.ok) {
+    const msg = await safeText(res);
+    throw new Error(msg || 'Failed to upload avatar');
+  }
+
+  const payload = await res.json();
+  return payload?.avatarUrl || null;
+}
+
+function handleAvatarFileChange(event) {
+  const input = event.target;
+  const file = input?.files?.[0];
+  const initials = getInitials(
+    currentUserProfile?.name || currentUserProfile?.email || 'User',
+  );
+
+  if (!file) {
+    pendingAvatarData = null;
+    setProfilePreview(normalizeAvatarUrl(currentUserProfile?.avatarUrl), initials);
+    return;
+  }
+
+  if (!file.type.startsWith('image/')) {
+    setProfileError('Please choose an image file');
+    input.value = '';
+    return;
+  }
+
+  if (file.size > 2 * 1024 * 1024) {
+    setProfileError('Image must be smaller than 2MB');
+    input.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const result = reader.result;
+    if (typeof result === 'string') {
+      pendingAvatarData = result;
+      setProfilePreview(result, initials);
+      setProfileError('');
+    }
+  };
+  reader.onerror = () => {
+    setProfileError('Failed to read file');
+    input.value = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleChatAvatarFileChange(event) {
+  const input = event.target;
+  const file = input?.files?.[0];
+  const initials = getInitials(chatTitleInput?.value || 'Chat');
+
+  if (!file) {
+    pendingChatAvatarData = null;
+    setChatPreviewAvatar(null, initials);
+    return;
+  }
+
+  if (!file.type.startsWith('image/')) {
+    setCreateChatError('Please choose an image file');
+    input.value = '';
+    return;
+  }
+
+  if (file.size > 2 * 1024 * 1024) {
+    setCreateChatError('Image must be smaller than 2MB');
+    input.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const result = reader.result;
+    if (typeof result === 'string') {
+      pendingChatAvatarData = result;
+      setChatPreviewAvatar(result, initials);
+      setCreateChatError('');
+    }
+  };
+  reader.onerror = () => {
+    setCreateChatError('Failed to read file');
+    input.value = '';
+  };
+  reader.readAsDataURL(file);
 }
 
 function handleLogout() {

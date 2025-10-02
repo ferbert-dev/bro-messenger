@@ -23,6 +23,18 @@ router.put(
   authenticateToken,
   asyncHandler(userController.updateUserById),
 );
+
+router.post(
+  '/me/avatar',
+  authenticateToken,
+  asyncHandler(userController.uploadMyAvatar),
+);
+
+router.get(
+  '/me/avatar',
+  authenticateToken,
+  asyncHandler(userController.getMyAvatar),
+);
 router.bind;
 //admin endpoints
 router.delete(
