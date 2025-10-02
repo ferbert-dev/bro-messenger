@@ -5,11 +5,7 @@ import { authenticateToken } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-router.get(
-  '',
-  authenticateToken,
-  asyncHandler(chatController.getAllChats),
-);
+router.get('', authenticateToken, asyncHandler(chatController.getAllChats));
 
 router.get(
   '/:chatId',

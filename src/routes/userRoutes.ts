@@ -1,6 +1,6 @@
 import express from 'express';
 import * as userController from '../controllers/userController';
-import {getAllChatsForUserById} from "../controllers/chatController"
+import { getAllChatsForUserById } from '../controllers/chatController';
 import { asyncHandler } from '../utils/asyncHandler';
 import { validateObjectId } from '../middleware/validateObjectId';
 import {

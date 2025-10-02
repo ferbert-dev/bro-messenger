@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import chatService from '../services/chatService';
-import {getMessagesByChatId} from '../services/messageService';
+import { getMessagesByChatId } from '../services/messageService';
 import { HttpError } from '../utils/httpError';
 import { AuthRequest } from '../middleware/authMiddleware';
 import {
@@ -23,18 +23,13 @@ export const getAllChatsForUserById = async (
   res.status(200).json(chatDtos);
 };
 
-export const getAllChats = async (
-  req: AuthRequest,
-  res: Response,
-) => {
+export const getAllChats = async (req: AuthRequest, res: Response) => {
   const chats = await chatService.getAllChats();
 
   //dto
   const chatDtos = chats.map((chat) => new ChatResponseDto(chat));
   res.status(200).json(chatDtos);
 };
-
-
 
 export const getChatById = async (req: AuthRequest, res: Response) => {
   const chatId = req.params.chatId;
