@@ -96,6 +96,7 @@ export async function getChatById(chatIdRaw: string): Promise<IChat | null> {
 
 export const chatService = {
   getMyChats,
+ getAllChats,
   addMember,
   removeMember,
   createChat,

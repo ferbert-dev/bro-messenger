@@ -24,7 +24,7 @@ export const loginUser = async (
   const { email, password } = req.body;
 
   // 1. Find user by email
-  const user: IUserDoc | null = await userService.getOneByEmail(email);
+  const user: IUserDoc | null = await userService.getOneByEmail(email.toLowerCase());
 
   if (!user) {
     // Don't reveal if user exists for security reasons

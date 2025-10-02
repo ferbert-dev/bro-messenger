@@ -6,6 +6,8 @@ import { getMessagesByChatId } from './messageService';
 import { IChat } from '../models/chatModel';
 import { IMessage, Message } from '../models/messageModel';
 import authService from './authService';
+import userService from './userService';
+import { IUser } from '@app/models/userModel';
 
 // ---- Types ----
 type JwtPayload = {
@@ -52,6 +54,7 @@ export function initWebSocket(server: Server, path = '/ws') {
       // 2) Extract token (Authorization: Bearer xxx OR ?token=)
       const token = extractToken(req);
       if (!token) {
+        logger.error("auth token is null");
         socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n10');
         socket.destroy();
         return;
@@ -91,16 +94,16 @@ export function initWebSocket(server: Server, path = '/ws') {
       try {
         prev.close(1000, 'Replaced by new connection');
       } catch {}
-      userSockets.set(userId, ws);
     }
+    userSockets.set(userId, ws);
     safeSend(ws, JSON.stringify({ type: 'welcome', userId }));
-
     // Incoming messages
     ws.on('message', async (buf) => {
       let msg: any;
       try {
         msg = JSON.parse(buf.toString());
       } catch {
+        logger.error("Error pars"+ msg);
         return;
       }
       switch (msg.type) {
@@ -111,29 +114,34 @@ export function initWebSocket(server: Server, path = '/ws') {
 
         case 'unsubscribe':
           if (!msg.chatId) return;
-          unsubscribeUserFromChat(userId, msg.chatId);
+          await unsubscribeUserFromChat(userId, msg.chatId);
           break;
 
         case 'message':
-          if (!msg.chatId || typeof msg.content !== 'string') return;
+          if (!msg.chatId || typeof msg.content !== 'string') 
+            {
+              logger.error("Ignore message chat id missing or message is empty"+ msg);
+            return};
+            logger.info("handle message"+ msg);
           await handleIncomingChatMessage(userId, msg.chatId, msg.content);
           break;
 
         default:
-          // ignore unknown
+           logger.error("Ignore default"+ msg);
           break;
       }
     });
 
     // Disconnect
-    ws.on('close', () => {
-      // remove this user from all subscribed chats
-      const chats = userSubscriptions.get(userId);
-      if (chats) {
-        for (const chatId of chats) {
-          removeFromMapSet(chatSubscribers, chatId, userId);
-        }
+  ws.on('close', () => {
+    // remove this user from all subscribed chats
+    const chats = userSubscriptions.get(userId);
+    if (chats) {
+      for (const chatId of chats) {
+        removeFromMapSet(chatSubscribers, chatId, userId);
+        void broadcastUserLeft(userId, chatId);
       }
+    }
       userSubscriptions.delete(userId);
       userSockets.delete(userId);
       logger.info(`WS closed user=${userId}`);
@@ -161,21 +169,38 @@ async function subscribeUserToChat(
 ) {
   const chat = await getChat(chatId);
   if (!chat) return safeSend(ws, errMsg('chat:not_found', chatId));
-  if (!isChatParticipant(chat, userId))
-    return safeSend(ws, errMsg('chat:forbidden', chatId));
+  //TODO LATER
+  //if (!isChatParticipant(chat, userId))
+  //  return safeSend(ws, errMsg('chat:forbidden', chatId));
 
   addToMapSet(userSubscriptions, userId, chatId);
   addToMapSet(chatSubscribers, chatId, userId);
 
   safeSend(ws, JSON.stringify({ type: 'subscribed', chatId }));
+
+  try {
+    const user = await userService.getUserById(userId);
+    const displayName = user?.name || user?.email || 'Someone';
+    const systemMsg = JSON.stringify({
+      type: 'chat:system',
+      chatId,
+      content: `${displayName} joined the chat`,
+      createdAt: new Date().toISOString(),
+    });
+    broadcastToChat(chatId, systemMsg);
+  } catch (err) {
+    logger.error(`Failed to broadcast join message for user=${userId}`, err as any);
+  }
 }
 
-function unsubscribeUserFromChat(userId: string, chatId: string) {
+async function unsubscribeUserFromChat(userId: string, chatId: string) {
   removeFromMapSet(userSubscriptions, userId, chatId);
   removeFromMapSet(chatSubscribers, chatId, userId);
 
   const ws = userSockets.get(userId);
   if (ws) safeSend(ws, JSON.stringify({ type: 'unsubscribed', chatId }));
+
+  await broadcastUserLeft(userId, chatId);
 }
 
 async function handleIncomingChatMessage(
@@ -185,29 +210,58 @@ async function handleIncomingChatMessage(
 ) {
   // ensure user is subscribed & a real member
   const subs = userSubscriptions.get(userId);
-  if (!subs?.has(chatId)) return; // ignore or send error
-
-  const chat = await getChat(chatId);
-  if (!chat || !isChatParticipant(chat, userId)) return;
+  if (!subs?.has(chatId)) {
+    logger.error("Ignore message chat id "+ chatId);
+    return}; // ignore or send error
+  //coment this code because user subscube to the chat and this check will be done in that step
+  //const chat = await getChat(chatId);
+  //if (!chat || !isChatParticipant(chat, userId)) return;
   //TODO save message parallel to db, do not need to wait
   const saved: IMessage = await saveMessage(userId, chatId, content);
+  const populated = await saved.populate('author', 'name');
+  const authorDoc = populated.author as any;                // comes back as User doc
+  const authorName = authorDoc?.name ?? null;
   const payload = JSON.stringify({
     type: 'chat:message',
     chatId,
     authorId: userId,
-    content: saved.content,
-    createdAt: saved.createdAt,
+    authorName: authorName,
+    content: populated.content,
+    createdAt: populated.createdAt,
   });
   // broadcast to all subscribers of this chat
+  logger.info("broadcast to all"+ payload);
   broadcastToChat(chatId, payload);
 }
 
 export function broadcastToChat(chatId: string, msg: string) {
   const userIds = chatSubscribers.get(chatId);
+   logger.info("broadcast to all1");
   if (!userIds?.size) return;
+  logger.info("broadcast to all before for");
   for (const uid of userIds) {
     const ws = userSockets.get(uid);
-    if (ws) safeSend(ws, msg);
+    logger.info("broadcast to all3");
+    if (ws) {
+      logger.info("broadcast ws not null");
+      safeSend(ws, msg);}
+  }
+  logger.info("broadcast to all after for");
+}
+
+async function broadcastUserLeft(userId: string, chatId: string) {
+  try {
+    const user = await userService.getUserById(userId);
+    const displayName = user?.name || user?.email || 'Someone';
+    const systemMsg = JSON.stringify({
+      type: 'chat:system',
+      chatId,
+      content: `${displayName} left the chat`,
+      createdAt: new Date().toISOString(),
+    });
+    broadcastToChat(chatId, systemMsg);
+  } catch (err) {
+    logger.error(`Failed to broadcast leave message for user=${userId}`, err as any);
   }
 }
 

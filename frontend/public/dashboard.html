@@ -17,6 +17,7 @@
     <pre id="userBox"></pre>
     <div class="actions">
       <button id="logout">Logout</button>
+      <button id="chat">Chat</button>
       <a href="./login.html">Back to Login</a>
     </div>
   </div>
@@ -42,6 +43,11 @@
       localStorage.removeItem("authToken");
       localStorage.removeItem("user");
       window.location.href = "./login.html";
+    });
+     document.getElementById("chat").addEventListener("click", () => {
+      //localStorage.removeItem("authToken");
+      //localStorage.removeItem("user");
+      window.location.href = "./chat.html";
     });
   </script>
 </body>

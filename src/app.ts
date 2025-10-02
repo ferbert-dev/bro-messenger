@@ -2,6 +2,7 @@ import express from 'express';
 import userRoutes from './routes/userRoutes';
 import statusRoutes from './routes/statusRoutes';
 import authRoutes from './routes/authRoutes';
+import chatRoutes from './routes/chatRoutes';
 import errorHandler from './middleware/errorHandler';
 import { staticPath } from './middleware/staticPathImport';
 
@@ -32,6 +33,7 @@ app.use('/', statusRoutes);
 // Serve user-related routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/chats', chatRoutes);
 app.use(errorHandler);
 
 export default app;

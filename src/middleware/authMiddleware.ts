@@ -57,7 +57,7 @@ export const authenticateToken = (
 
       if (userIdFromToken !== userIdFromParams) {
         return res.status(403).json({ message: 'Forbidden: Not your account' });
-      }
+     }
       req.user = user;
       next();
     },

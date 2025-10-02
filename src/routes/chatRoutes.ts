@@ -8,7 +8,7 @@ const router = express.Router();
 router.get(
   '',
   authenticateToken,
-  asyncHandler(chatController.getAllChatsForUserById),
+  asyncHandler(chatController.getAllChats),
 );
 
 router.get(
@@ -16,7 +16,11 @@ router.get(
   authenticateToken,
   asyncHandler(chatController.getChatById),
 );
-
+router.get(
+  '/:chatId/messages',
+  authenticateToken,
+  asyncHandler(chatController.getChatMessagesById),
+);
 router.post(
   '/:chatId/members',
   authenticateToken,
