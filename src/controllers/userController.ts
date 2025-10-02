@@ -11,10 +11,7 @@ import {
 } from '../common/constants';
 import { IUserDoc } from '../models/userModel';
 import fs from 'fs';
-import {
-  deleteFileIfExists,
-  saveBase64Image,
-} from '../utils/avatarStorage';
+import { deleteFileIfExists, saveBase64Image } from '../utils/avatarStorage';
 
 export const getUsers = async (req: Request, res: Response) => {
   const users = await userService.getAllUsers();
