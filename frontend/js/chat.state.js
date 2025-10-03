@@ -11,4 +11,5 @@ export const state = {
   pendingAvatarData: null,
   pendingChatAvatarData: null,
   chatPresence: new Map(),
+  isEmojiPickerOpen: false,
 };

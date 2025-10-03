@@ -26,4 +26,7 @@ export const DOM = {
   profileSave: document.getElementById('profileSave'),
   profileError: document.getElementById('profileError'),
   logoutBtn: document.getElementById('logoutBtn'),
+  emojiBtn: document.getElementById('emojiBtn'),
+  emojiPicker: document.getElementById('emojiPicker'),
+  emojiPickerPanel: document.getElementById('emojiPickerPanel'),
 };

@@ -107,6 +107,8 @@ function setupEventListeners() {
       handleSendMessage();
     }
   });
+  DOM.emojiBtn?.addEventListener('click', toggleEmojiPicker);
+  DOM.emojiPickerPanel?.addEventListener('emoji-click', handleEmojiSelect);
 
   DOM.newChatBtn?.addEventListener('click', () => {
     resetCreateChatModal();
@@ -136,6 +138,66 @@ function setupEventListeners() {
   DOM.profileAvatarInput?.addEventListener('change', handleProfileAvatarChange);
 
   DOM.logoutBtn?.addEventListener('click', handleLogout);
+
+  document.addEventListener('click', handleDocumentClickForEmoji);
+  document.addEventListener('keydown', handleEmojiKeydown);
+}
+
+function toggleEmojiPicker(event) {
+  event?.preventDefault();
+  event?.stopPropagation();
+  if (state.isEmojiPickerOpen) {
+    closeEmojiPicker();
+  } else {
+    openEmojiPicker();
+  }
+}
+
+function openEmojiPicker() {
+  if (!DOM.emojiPicker) return;
+  DOM.emojiPicker.classList.add('open');
+  DOM.emojiPicker.setAttribute('aria-hidden', 'false');
+  state.isEmojiPickerOpen = true;
+}
+
+function closeEmojiPicker() {
+  if (!DOM.emojiPicker) return;
+  DOM.emojiPicker.classList.remove('open');
+  DOM.emojiPicker.setAttribute('aria-hidden', 'true');
+  state.isEmojiPickerOpen = false;
+}
+
+function handleEmojiSelect(event) {
+  const emoji = event?.detail?.unicode;
+  if (!emoji) return;
+  insertEmojiAtCaret(emoji);
+  closeEmojiPicker();
+}
+
+function insertEmojiAtCaret(emoji) {
+  const input = DOM.input;
+  if (!input) return;
+  const { selectionStart = input.value.length, selectionEnd = input.value.length } = input;
+  const before = input.value.slice(0, selectionStart);
+  const after = input.value.slice(selectionEnd);
+  input.value = `${before}${emoji}${after}`;
+  const caret = selectionStart + emoji.length;
+  input.focus();
+  input.setSelectionRange(caret, caret);
+}
+
+function handleDocumentClickForEmoji(event) {
+  if (!state.isEmojiPickerOpen) return;
+  const target = event.target;
+  if (DOM.emojiPicker?.contains(target) || DOM.emojiBtn?.contains(target)) return;
+  closeEmojiPicker();
+}
+
+function handleEmojiKeydown(event) {
+  if (!state.isEmojiPickerOpen) return;
+  if (event.key === 'Escape') {
+    closeEmojiPicker();
+  }
 }
 
 function handleSearch(event) {
@@ -151,6 +213,7 @@ function handleChatSelect(chatId) {
 }
 
 async function selectChat(chatId, options = {}) {
+  closeEmojiPicker();
   state.activeChatId = chatId;
   if (!options.skipHighlight) highlightChat(chatId);
   subscribeToChat(chatId);
@@ -188,6 +251,7 @@ async function selectChat(chatId, options = {}) {
 }
 
 function handleSendMessage() {
+  closeEmojiPicker();
   const content = DOM.input?.value ?? '';
   if (!content.trim()) return;
   sendChatMessage(state.activeChatId, content);

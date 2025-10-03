@@ -42,6 +42,12 @@
           <!-- messages will append here -->
         </main>
         <footer class="input">
+          <div class="emoji-wrapper">
+            <button id="emojiBtn" class="emoji-btn" type="button" aria-label="Insert emoji">😊</button>
+            <div id="emojiPicker" class="emoji-popover" aria-hidden="true">
+              <emoji-picker id="emojiPickerPanel"></emoji-picker>
+            </div>
+          </div>
           <input id="input" placeholder="Write a message…" />
           <button id="send" class="btn btn-circle" aria-label="Send">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3.4 20.6L22 12 3.4 3.4 3 10l12 2-12 2 .4 6.6z" fill="currentColor"/></svg>
@@ -88,6 +94,7 @@
       <p id="profileError" class="modal-error" role="alert"></p>
     </div>
   </div>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.min.js"></script>
   <script type="module" src="../js/chat.fetch.js"></script>
 </body>
 </html>

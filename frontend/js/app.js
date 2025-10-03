@@ -1,6 +1,10 @@
+const API_PROTOCOL = window.location.protocol === 'https:' ? 'https:' : 'http:';
+const API_HOSTNAME = window.location.hostname || 'localhost';
+const API_BASE = `${API_PROTOCOL}//${API_HOSTNAME}:3000`;
+
 const ENDPOINTS = {
-  login: "http://localhost:3000/api/auth/login",
-  register: "http://localhost:3000/api/auth/register",
+  login: `${API_BASE}/api/auth/login`,
+  register: `${API_BASE}/api/auth/register`,
 };
 const REDIRECT_URL = "chat.html";
 const TOKEN_KEY = "authToken";
