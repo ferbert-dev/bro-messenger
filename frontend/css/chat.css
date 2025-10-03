@@ -82,19 +82,27 @@ body{
 
 .chat-body{flex:1; overflow:auto; padding:18px; background:linear-gradient(#fff, #fff) padding-box, repeating-linear-gradient(180deg, #f7f8fc 0, #f7f8fc 40px, #ffffff 40px, #ffffff 80px) border-box; border-radius:0 0 20px 20px}
 
-.divider{display:flex; align-items:center; gap:12px; color:var(--muted); margin:12px 0}
-.divider::before,.divider::after{content:""; height:1px; background:#e9ecf5; flex:1}
+.divider{display:flex; align-items:center; gap:12px; color:var(--muted); margin:12px 0; font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase}
+.divider::before,.divider::after{content:""; height:1px; background:linear-gradient(90deg, rgba(100,116,139,.15), rgba(100,116,139,0)); flex:1}
+.divider::after{background:linear-gradient(90deg, rgba(100,116,139,0), rgba(100,116,139,.15))}
 
-.bubble{max-width:66%; padding:12px 14px; border-radius:18px; background:var(--bubble); box-shadow:var(--shadow)}
+.bubble{position:relative; max-width:70%; padding:8px 12px; border-radius:20px; background:#eceffd; color:#1f2937; box-shadow:none; border:none; display:flex; flex-direction:column; gap:6px}
+.bubble::after{content:""; position:absolute; top:6px; width:16px; height:16px; background:inherit; clip-path:path("M16,0 L0,8 L16,16 Z");}
+.bubble strong{display:block; font-weight:600; color:#202b4b; margin:0}
+.bubble p{margin:0; line-height:1.45}
+.bubble .meta{align-self:flex-end; margin:0; font-size:12px; color:#6b7280}
 .row{margin:10px 0; display:flex; gap:10px}
 .row .avatar-sm{width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#dbeafe,#e9d5ff); display:grid; place-items:center; font-weight:600; color:#4338ca; overflow:hidden; flex-shrink:0}
 .row .avatar-sm img{width:100%; height:100%; object-fit:cover}
 .row.me{justify-content:flex-end}
-.row.me .bubble{background:#eef2ff}
+.row.me .bubble{background:#d6f6ff}
+.row.me .bubble::after{left:auto; right:-10px; transform:scaleX(-1); transform-origin:center}
+.row:not(.me) .bubble::after{left:-10px}
 .row.me .avatar-sm{order:2}
 .row.system{justify-content:center}
-.row.system .bubble{background:transparent; box-shadow:none; color:var(--muted); text-align:center}
+.row.system .bubble{background:transparent; border:none; box-shadow:none; color:var(--muted); text-align:center; display:block}
 .meta{font-size:12px; color:var(--muted); margin: 0 4px}
+.row .bubble .meta{align-self:flex-end; margin:0; color:#6b7280}
 
 .input{display:flex; gap:10px; padding:14px; border-top:1px solid #eef0f5; background:#fff; border-radius:0 0 20px 20px}
 .input input{flex:1; border:1px solid #e6e8f0; border-radius:14px; padding:12px 14px; outline:none; font:inherit}
