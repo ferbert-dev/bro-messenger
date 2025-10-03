@@ -14,7 +14,6 @@
     <header class="topbar">
       <div class="logo">Bro Messager</div>
       <div class="topbar-actions">
-        <button id="logoutBtn" class="btn secondary" type="button">Logout</button>
         <button id="profileBtn" class="avatar-btn" type="button" aria-label="Open profile">
           <span id="profileAvatar" aria-hidden="true">U</span>
         </button>
@@ -81,16 +80,17 @@
   </div>
 
   <div id="profileModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
-    <div class="modal-content">
-      <h3>Edit Profile</h3>
-      <p id="profileEmail" class="modal-subtext"></p>
-      <label for="profileNameInput">Display name</label>
-      <input id="profileNameInput" type="text" placeholder="Enter your name" />
-      <label for="profileAvatarInput">Profile picture</label>
-      <div id="profileAvatarPreview" class="avatar-preview" aria-hidden="true">
+    <div class="modal-content profile-modal">
+      <h3 class="profile-title">Edit Profile</h3>
+      <div class="avatar-preview" id="profileAvatarPreview" aria-hidden="true">
         <span>U</span>
       </div>
+      <label for="profileAvatarInput" class="sr-only">Profile picture</label>
       <input id="profileAvatarInput" type="file" accept="image/*" />
+      <p id="profileEmail" class="profile-email"></p>
+      <label for="profileNameInput">Display name</label>
+      <input id="profileNameInput" type="text" placeholder="Enter your name" />
+      <button id="logoutBtn" class="btn secondary modal-logout" type="button">Logout</button>
       <div class="modal-actions">
         <button id="profileCancel" class="btn secondary" type="button">Cancel</button>
         <button id="profileSave" class="btn" type="button">Save</button>

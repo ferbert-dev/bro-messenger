@@ -128,6 +128,9 @@ body{
 .btn-circle{width:42px; height:42px; border-radius:50%; padding:0; display:grid; place-items:center}
 .btn.secondary{background:#e5e7eb; color:#111827}
 .btn.secondary:hover{background:#d1d5db}
+.btn.danger{background:#f87171; color:#fff}
+.btn.danger:hover{background:#ef4444}
+.btn.danger:active{transform:translateY(1px)}
 .topbar .btn.secondary{
   background:rgba(255,255,255,.18);
   color:#fff;
@@ -148,9 +151,19 @@ body{
 .avatar-preview span{pointer-events:none}
 .avatar-preview img{width:100%; height:100%; object-fit:cover}
 
+.modal-logout{margin:0 auto 16px; width:90%; max-width:280px; display:block}
+
 .avatar-btn.has-image{background:none; background-size:cover; background-position:center; background-repeat:no-repeat; color:transparent}
 .avatar-btn.has-image span{display:none}
 .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0}
+.profile-modal{align-items:center; text-align:center; gap:16px}
+.profile-modal .profile-title{font-size:28px; font-weight:700; margin-bottom:4px}
+.profile-modal .avatar-preview{width:96px; height:96px}
+.profile-modal #profileAvatarInput{text-align:center}
+.profile-modal .profile-email{font-size:16px; font-weight:600; color:#4b5563; margin-bottom:8px}
+.profile-modal label{align-self:flex-start}
+.profile-modal .modal-actions{width:100%; justify-content:space-between}
+.profile-modal .modal-logout{width:100%}
 
 /* Responsive */
 @media (max-width: 980px){
