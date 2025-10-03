@@ -44,6 +44,7 @@ import {
   setActiveChatPresence,
   setChatListPresence,
   refreshMessagePresence,
+  scrollMessagesToBottom,
 } from './chat.view.js';
 import { getInitials, isImageFile, compressImageToLimit } from './chat.utils.js';
 
@@ -88,8 +89,13 @@ async function bootstrap() {
     renderChatList(handleChatSelect);
 
     if (state.filteredChats.length) {
-      const firstChat = state.filteredChats[0];
-      selectChat(firstChat.id, { skipHighlight: true });
+      if (isMobileViewport()) {
+        highlightChat(state.filteredChats[0].id);
+        showChatsListMobile();
+      } else {
+        const firstChat = state.filteredChats[0];
+        selectChat(firstChat.id, { skipHighlight: true });
+      }
     }
   } catch (err) {
     console.error(err);
@@ -141,6 +147,12 @@ function setupEventListeners() {
 
   document.addEventListener('click', handleDocumentClickForEmoji);
   document.addEventListener('keydown', handleEmojiKeydown);
+  DOM.backToChats?.addEventListener('click', (event) => {
+    event?.preventDefault();
+    showChatsListMobile();
+  });
+  window.addEventListener('resize', handleViewportResize);
+  handleViewportResize();
 }
 
 function toggleEmojiPicker(event) {
@@ -200,6 +212,28 @@ function handleEmojiKeydown(event) {
   }
 }
 
+function isMobileViewport() {
+  return window.matchMedia('(max-width: 980px)').matches;
+}
+
+function showChatOnMobile() {
+  if (!isMobileViewport()) return;
+  DOM.container?.classList.add('show-chat');
+  setTimeout(() => scrollMessagesToBottom(), 80);
+}
+
+function showChatsListMobile() {
+  if (!isMobileViewport()) return;
+  DOM.container?.classList.remove('show-chat');
+  closeEmojiPicker();
+}
+
+function handleViewportResize() {
+  if (!isMobileViewport()) {
+    DOM.container?.classList.remove('show-chat');
+  }
+}
+
 function handleSearch(event) {
   const query = (event.target.value || '').toLowerCase();
   state.filteredChats = state.chats.filter((chat) =>
@@ -217,6 +251,7 @@ async function selectChat(chatId, options = {}) {
   state.activeChatId = chatId;
   if (!options.skipHighlight) highlightChat(chatId);
   subscribeToChat(chatId);
+  showChatOnMobile();
   syncActiveChatPresence();
 
   const chatMeta = state.chats.find((chat) => chat.id === chatId);
@@ -244,6 +279,7 @@ async function selectChat(chatId, options = {}) {
       : [];
     setMessages(chatId, normalized);
     renderMessages(chatId);
+    requestAnimationFrame(() => scrollMessagesToBottom());
   } catch (err) {
     console.error(err);
     renderMessagesError(err.message || 'Failed to load messages');

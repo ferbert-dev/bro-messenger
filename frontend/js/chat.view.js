@@ -124,7 +124,7 @@ export function renderMessages(chatId) {
   });
   DOM.messages.appendChild(frag);
   DOM.messages.dataset.lastGroup = lastGroup || '';
-  DOM.messages.scrollTop = DOM.messages.scrollHeight;
+  scheduleScrollToBottom();
   refreshMessagePresence(chatId);
 }
 
@@ -193,7 +193,7 @@ export function appendMessageRow(message) {
   if (row) {
     DOM.messages.appendChild(row);
     if (group) DOM.messages.dataset.lastGroup = group;
-    DOM.messages.scrollTop = DOM.messages.scrollHeight;
+    scheduleScrollToBottom();
   }
 }
 
@@ -231,6 +231,32 @@ export function refreshMessagePresence(chatId) {
       if (identifier && presenceSet.has(identifier)) node.classList.add('is-online');
       else node.classList.remove('is-online');
     });
+}
+
+export function scrollMessagesToBottom() {
+  if (!DOM.messages) return;
+  if (DOM.messages.dataset.state !== 'content') {
+    scheduleScrollToBottom({ includePageScroll: false });
+    return;
+  }
+  scheduleScrollToBottom({ includePageScroll: true });
+}
+
+function scheduleScrollToBottom(options = {}) {
+  const { includePageScroll = false } = options;
+  if (!DOM.messages) return;
+  const performScroll = () => {
+    if (!DOM.messages) return;
+    DOM.messages.scrollTop = DOM.messages.scrollHeight;
+    if (includePageScroll && window.matchMedia('(max-width: 980px)').matches) {
+      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'auto' });
+    }
+  };
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(performScroll, 0);
+    });
+  });
 }
 
 function buildMessageRow(message) {

@@ -1,4 +1,5 @@
 export const DOM = {
+  container: document.querySelector('.container'),
   list: document.getElementById('chatList'),
   search: document.getElementById('search'),
   input: document.getElementById('input'),
@@ -29,4 +30,5 @@ export const DOM = {
   emojiBtn: document.getElementById('emojiBtn'),
   emojiPicker: document.getElementById('emojiPicker'),
   emojiPickerPanel: document.getElementById('emojiPickerPanel'),
+  backToChats: document.getElementById('backToChats'),
 };
