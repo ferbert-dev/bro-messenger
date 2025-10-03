@@ -5,6 +5,7 @@ import {
   getInitials,
   formatMessageTime,
   normalizeAvatarUrl,
+  getMessageDayLabel,
 } from './chat.utils.js';
 
 export function showStatus(message) {
@@ -108,12 +109,20 @@ export function renderMessages(chatId) {
   }
   DOM.messages.innerHTML = '';
   DOM.messages.dataset.state = 'content';
+  let lastGroup = '';
   const frag = document.createDocumentFragment();
   list.forEach((message) => {
+    const group = getMessageDayLabel(message.createdAt);
+    if (group && group !== lastGroup) {
+      const divider = buildDayDivider(group);
+      if (divider) frag.appendChild(divider);
+      lastGroup = group;
+    }
     const row = buildMessageRow(message);
     if (row) frag.appendChild(row);
   });
   DOM.messages.appendChild(frag);
+  DOM.messages.dataset.lastGroup = lastGroup || '';
   DOM.messages.scrollTop = DOM.messages.scrollHeight;
 }
 
@@ -123,6 +132,7 @@ export function renderMessagesStatus(text) {
   DOM.messages.innerHTML = `<div style="padding:12px 14px; color:#8b8f9c">${escapeHtml(
     text,
   )}</div>`;
+  if (DOM.messages.dataset) DOM.messages.dataset.lastGroup = '';
 }
 
 export function renderMessagesError(text) {
@@ -131,6 +141,7 @@ export function renderMessagesError(text) {
   DOM.messages.innerHTML = `<div style="padding:12px 14px; color:#b91c1c; background:#fff1f2; border-radius:12px; margin:8px">${escapeHtml(
     text,
   )}</div>`;
+  if (DOM.messages.dataset) DOM.messages.dataset.lastGroup = '';
 }
 
 export function appendSystemNotice(content, createdAt) {
@@ -138,9 +149,17 @@ export function appendSystemNotice(content, createdAt) {
   if (DOM.messages.dataset.state === 'status') {
     DOM.messages.innerHTML = '';
     DOM.messages.dataset.state = 'content';
+    DOM.messages.dataset.lastGroup = '';
   }
   const text = (content || '').trim();
   if (!text) return;
+  const group = getMessageDayLabel(createdAt);
+  const lastGroup = DOM.messages.dataset.lastGroup || '';
+  if (group && group !== lastGroup) {
+    const divider = buildDayDivider(group);
+    if (divider) DOM.messages.appendChild(divider);
+    DOM.messages.dataset.lastGroup = group;
+  }
   const row = document.createElement('div');
   row.className = 'row system';
   row.innerHTML = `
@@ -150,6 +169,7 @@ export function appendSystemNotice(content, createdAt) {
     </div>
   `;
   DOM.messages.appendChild(row);
+  if (group) DOM.messages.dataset.lastGroup = group;
   DOM.messages.scrollTop = DOM.messages.scrollHeight;
 }
 
@@ -158,10 +178,19 @@ export function appendMessageRow(message) {
   if (DOM.messages.dataset.state === 'status') {
     DOM.messages.innerHTML = '';
     DOM.messages.dataset.state = 'content';
+    DOM.messages.dataset.lastGroup = '';
+  }
+  const group = getMessageDayLabel(message.createdAt);
+  const lastGroup = DOM.messages.dataset.lastGroup || '';
+  if (group && group !== lastGroup) {
+    const divider = buildDayDivider(group);
+    if (divider) DOM.messages.appendChild(divider);
+    DOM.messages.dataset.lastGroup = group;
   }
   const row = buildMessageRow(message);
   if (row) {
     DOM.messages.appendChild(row);
+    if (group) DOM.messages.dataset.lastGroup = group;
     DOM.messages.scrollTop = DOM.messages.scrollHeight;
   }
 }
@@ -179,10 +208,12 @@ function buildMessageRow(message) {
 
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
+  const nameMarkup =
+    isMine ? '' : `<strong>${escapeHtml(message.authorName || 'Anonymous')}</strong>`;
   bubble.innerHTML = `
-    <strong>${escapeHtml(message.authorName || 'Anonymous')}</strong>
-    <div class="meta">${escapeHtml(formatMessageTime(message.createdAt))}</div>
+    ${nameMarkup}
     <p>${escapeHtml(message.content || '')}</p>
+    <div class="meta">${escapeHtml(formatMessageTime(message.createdAt))}</div>
   `;
 
   const avatarNode = createAvatarElement(
@@ -200,6 +231,15 @@ function buildMessageRow(message) {
   }
 
   return row;
+}
+
+function buildDayDivider(label) {
+  if (!label) return null;
+  const node = document.createElement('div');
+  node.className = 'row divider';
+  node.setAttribute('role', 'separator');
+  node.innerHTML = `<span>${escapeHtml(label)}</span>`;
+  return node;
 }
 
 export function createAvatarElement(avatarUrl, fallbackName) {

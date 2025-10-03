@@ -42,7 +42,7 @@ import {
   resetProfileModal,
   setProfileError,
 } from './chat.view.js';
-import { getInitials, isImageFile, validateFileSize } from './chat.utils.js';
+import { getInitials, isImageFile, compressImageToLimit } from './chat.utils.js';
 
 export async function initialize() {
   setupEventListeners();
@@ -275,7 +275,7 @@ async function handleProfileSave() {
   }
 }
 
-function handleProfileAvatarChange(event) {
+async function handleProfileAvatarChange(event) {
   const file = event.target?.files?.[0];
   const initials = getInitials(
     state.currentUserProfile?.name || state.currentUserProfile?.email || 'User',
@@ -293,28 +293,20 @@ function handleProfileAvatarChange(event) {
     return;
   }
 
-  if (!validateFileSize(file)) {
-    setProfileError('Image must be smaller than 2MB');
+  try {
+    const processed = await compressImageToLimit(file);
+    state.pendingAvatarData = processed;
+    setProfilePreview(processed, initials);
+    setProfileError('');
+  } catch (err) {
+    console.error(err);
+    setProfileError(err.message || 'Failed to process image');
+    state.pendingAvatarData = null;
     event.target.value = '';
-    return;
   }
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    if (typeof reader.result === 'string') {
-      state.pendingAvatarData = reader.result;
-      setProfilePreview(reader.result, initials);
-      setProfileError('');
-    }
-  };
-  reader.onerror = () => {
-    setProfileError('Failed to read file');
-    event.target.value = '';
-  };
-  reader.readAsDataURL(file);
 }
 
-function handleChatAvatarChange(event) {
+async function handleChatAvatarChange(event) {
   const file = event.target?.files?.[0];
   const initials = getInitials(DOM.chatTitleInput?.value || 'Chat');
 
@@ -330,25 +322,17 @@ function handleChatAvatarChange(event) {
     return;
   }
 
-  if (!validateFileSize(file)) {
-    setCreateChatError('Image must be smaller than 2MB');
+  try {
+    const processed = await compressImageToLimit(file);
+    state.pendingChatAvatarData = processed;
+    setChatPreviewAvatar(processed, initials);
+    setCreateChatError('');
+  } catch (err) {
+    console.error(err);
+    setCreateChatError(err.message || 'Failed to process image');
+    state.pendingChatAvatarData = null;
     event.target.value = '';
-    return;
   }
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    if (typeof reader.result === 'string') {
-      state.pendingChatAvatarData = reader.result;
-      setChatPreviewAvatar(reader.result, initials);
-      setCreateChatError('');
-    }
-  };
-  reader.onerror = () => {
-    setCreateChatError('Failed to read file');
-    event.target.value = '';
-  };
-  reader.readAsDataURL(file);
 }
 
 function handleLogout() {
