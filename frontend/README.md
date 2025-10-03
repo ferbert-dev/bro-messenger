@@ -2,16 +2,27 @@
 
 Static HTML, CSS, and vanilla JS client that talks to the Express API for
 authentication, chat, and avatar uploads. The stack assumes Nginx serves these
-files from Docker, but you can load them locally with any static server.
+files from Docker, but you can load them locally with any static server. API
+URLs and WebSocket endpoints are resolved dynamically from the current host so
+the UI works both on localhost and across your LAN.
 
-## Pages and Features
-- `login.html` posts credentials to `/api/auth/login` and `/api/auth/register`,
-  then stores `authToken` and `user` in `localStorage`.
-- `dashboard.html` reads the stored session data, shows profile details, and
-  redirects to the login page if anything is missing.
-- `chat.html` interacts with the REST and WebSocket services using
-  `frontend/js/chat.fetch.js` plus `frontend/js/ws.handlers.js` to keep the
-  conversation list and messages in sync.
+## Key Features
+- **Auth flow**: `login.html` posts to `/api/auth/login` and `/api/auth/register`
+  and stores the resulting token + user object in `localStorage`. `dashboard.html`
+  displays the stored profile and guards access when data is missing.
+- **Realtime chat**: `chat.html` consumes REST endpoints and WebSocket updates
+  to load history, send messages, and stream new activity in real time.
+- **Responsive UI**: Below 980px the layout switches to a mobile view that shows
+  the chats list and conversation screen as separate panels, adds a back button,
+  and keeps the composer visible while auto-scrolling to the latest messages.
+- **Media & emoji**: Users can upload avatars (with client-side compression and
+  scaling), pick emoji via the built-in emoji picker, and preview chat images
+  before saving.
+- **Presence indicators**: When other participants join a chat the list and
+  message avatars gain a green halo and the chat header updates with live
+  presence counts.
+- **Profile modal**: Centered avatar, enlarged headings, quick access to update
+  name/avatar, and an easy-to-spot logout button.
 
 ## Project Layout
 ```
@@ -19,9 +30,7 @@ frontend/
   public/              # HTML entry points + static assets
     assets/
     chat.html
-    dashboard.html
     login.html
-  css/                 # Base styles and page-specific themes
   js/                  # Auth logic, chat fetch helpers, websocket utilities
   uploads/             # Sample avatars served from /uploads in Docker
 ```
@@ -45,3 +54,7 @@ npx serve frontend/public
 
 Ensure the API runs on `http://localhost:3000` (default in `frontend/js/app.js`)
 so the forms and chat REST calls succeed.
+
+> Tip: When opening the frontend from another device on your network, browse to
+> `http://<host-ip>/` and make sure port `3000` on the host is reachable for the
+> API/WebSocket traffic.

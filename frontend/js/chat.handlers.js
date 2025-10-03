@@ -291,7 +291,13 @@ function handleSendMessage() {
   const content = DOM.input?.value ?? '';
   if (!content.trim()) return;
   sendChatMessage(state.activeChatId, content);
-  if (DOM.input) DOM.input.value = '';
+  if (DOM.input) {
+    DOM.input.value = '';
+    requestAnimationFrame(() => {
+      DOM.input?.focus();
+      scrollMessagesToBottom();
+    });
+  }
 }
 
 async function handleCreateChat() {
