@@ -6,6 +6,7 @@ export const DOM = {
   messages: document.getElementById('messages'),
   activeChatTitle: document.getElementById('chat-title'),
   activeChatImage: document.getElementById('chat-image'),
+  activeChatPresence: document.getElementById('chatPresenceDot'),
   newChatBtn: document.getElementById('newChatBtn'),
   newChatModal: document.getElementById('newChatModal'),
   chatTitleInput: document.getElementById('chatTitleInput'),

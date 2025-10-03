@@ -10,4 +10,5 @@ export const state = {
   currentUserProfile: null,
   pendingAvatarData: null,
   pendingChatAvatarData: null,
+  chatPresence: new Map(),
 };

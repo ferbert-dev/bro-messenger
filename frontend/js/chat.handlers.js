@@ -41,6 +41,9 @@ import {
   setCreateChatError,
   resetProfileModal,
   setProfileError,
+  setActiveChatPresence,
+  setChatListPresence,
+  refreshMessagePresence,
 } from './chat.view.js';
 import { getInitials, isImageFile, compressImageToLimit } from './chat.utils.js';
 
@@ -151,6 +154,7 @@ async function selectChat(chatId, options = {}) {
   state.activeChatId = chatId;
   if (!options.skipHighlight) highlightChat(chatId);
   subscribeToChat(chatId);
+  syncActiveChatPresence();
 
   const chatMeta = state.chats.find((chat) => chat.id === chatId);
   updateChatHeader(chatMeta?.title || 'Untitled chat', chatMeta?.avatarUrl || null);
@@ -364,17 +368,90 @@ function closeCreateChatModal() {
   resetCreateChatModal();
 }
 
+function handlePresenceSystemMessage(message) {
+  const joinSuffix = ' joined the chat';
+  const leaveSuffix = ' left the chat';
+  const content = message.content || '';
+  const chatId = message.chatId;
+  if (!chatId || !content) return;
+
+  if (content.endsWith(joinSuffix)) {
+    const name = content.slice(0, -joinSuffix.length).trim();
+    if (name && !isSelfDisplayName(name)) {
+      updateChatPresence(chatId, name, true);
+    }
+  } else if (content.endsWith(leaveSuffix)) {
+    const name = content.slice(0, -leaveSuffix.length).trim();
+    if (name && !isSelfDisplayName(name)) {
+      updateChatPresence(chatId, name, false);
+    }
+  }
+}
+
+function handlePresenceFromMessage(message) {
+  if (!message?.chatId) return;
+  const isMine =
+    state.currentUserId &&
+    message.authorId &&
+    String(message.authorId) === String(state.currentUserId);
+  if (isMine) return;
+
+  const identifier = (message.authorName || '').trim() || message.authorId;
+  if (!identifier) return;
+  updateChatPresence(message.chatId, identifier, true);
+}
+
+function updateChatPresence(chatId, identifier, isOnline) {
+  if (!chatId || !identifier) return;
+  let presence = state.chatPresence.get(chatId);
+  if (!presence) {
+    presence = new Set();
+    state.chatPresence.set(chatId, presence);
+  }
+  if (isOnline) presence.add(identifier);
+  else presence.delete(identifier);
+  const count = presence.size;
+  if (chatId === state.activeChatId) setActiveChatPresence(count);
+  setChatListPresence(chatId, count);
+  if (chatId === state.activeChatId) refreshMessagePresence(chatId);
+}
+
+function isSelfDisplayName(name) {
+  if (!name) return false;
+  const normalized = name.trim().toLowerCase();
+  const profile = state.currentUserProfile;
+  const candidates = new Set();
+  if (profile?.name) candidates.add(profile.name.trim().toLowerCase());
+  if (profile?.email) {
+    candidates.add(profile.email.trim().toLowerCase());
+    const local = profile.email.split('@')[0];
+    if (local) candidates.add(local.trim().toLowerCase());
+  }
+  return candidates.has(normalized);
+}
+
+function syncActiveChatPresence() {
+  if (!state.activeChatId) {
+    setActiveChatPresence(0);
+    return;
+  }
+  const count = state.chatPresence.get(state.activeChatId)?.size || 0;
+  setActiveChatPresence(count);
+}
+
 function handleSocketMessage(raw) {
   const normalized = normalizeMessagePayload(raw);
   if (!normalized?.chatId) return;
 
   if (normalized.type === 'chat:system') {
+    handlePresenceSystemMessage(normalized);
     if (normalized.chatId === state.activeChatId) {
       appendSystemNotice(normalized.content, normalized.createdAt);
     }
     return;
   }
 
+  handlePresenceFromMessage(normalized);
   cacheMessage(normalized);
   if (normalized.chatId === state.activeChatId) {
     appendMessageRow(normalized);

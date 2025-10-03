@@ -48,6 +48,7 @@ export function renderChatList(onSelect) {
     } else {
       avatar.textContent = initials;
     }
+    applyPresenceToAvatar(avatar, chat.id);
 
     const main = document.createElement('div');
     main.className = 'ci-main';
@@ -124,6 +125,7 @@ export function renderMessages(chatId) {
   DOM.messages.appendChild(frag);
   DOM.messages.dataset.lastGroup = lastGroup || '';
   DOM.messages.scrollTop = DOM.messages.scrollHeight;
+  refreshMessagePresence(chatId);
 }
 
 export function renderMessagesStatus(text) {
@@ -195,6 +197,42 @@ export function appendMessageRow(message) {
   }
 }
 
+export function setActiveChatPresence(count) {
+  if (!DOM.activeChatPresence) return;
+  const isOnline = (count ?? 0) > 0;
+  DOM.activeChatPresence.classList.toggle('online--active', isOnline);
+  const label = isOnline
+    ? `${count} participant${count > 1 ? 's' : ''} online`
+    : 'No other participants online';
+  DOM.activeChatPresence.setAttribute('title', label);
+}
+
+export function setChatListPresence(chatId, count) {
+  const row = document.querySelector(`.chat-item[data-chat-id="${chatId}"]`);
+  const avatar = row?.querySelector('.avatar');
+  if (!avatar) return;
+  if ((count ?? 0) > 0) avatar.classList.add('is-online');
+  else avatar.classList.remove('is-online');
+}
+
+export function refreshMessagePresence(chatId) {
+  if (!chatId) return;
+  const presenceSet = state.chatPresence.get(chatId);
+  if (!presenceSet || !presenceSet.size) {
+    document
+      .querySelectorAll('#messages .avatar-sm.is-online')
+      .forEach((node) => node.classList.remove('is-online'));
+    return;
+  }
+  document
+    .querySelectorAll(`#messages .row[data-chat-id="${chatId}"] .avatar-sm`)
+    .forEach((node) => {
+      const identifier = node.dataset.authorIdentifier || '';
+      if (identifier && presenceSet.has(identifier)) node.classList.add('is-online');
+      else node.classList.remove('is-online');
+    });
+}
+
 function buildMessageRow(message) {
   if (!message || message.type !== 'chat:message') return null;
 
@@ -205,6 +243,7 @@ function buildMessageRow(message) {
 
   const row = document.createElement('div');
   row.className = 'row' + (isMine ? ' me' : '');
+  row.dataset.chatId = message.chatId;
 
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
@@ -221,6 +260,7 @@ function buildMessageRow(message) {
       (isMine ? state.currentUserProfile?.avatarUrl : null),
     message.authorName,
   );
+  if (!isMine) decorateMessageAvatarPresence(avatarNode, message);
 
   if (!isMine) {
     row.appendChild(avatarNode);
@@ -233,6 +273,12 @@ function buildMessageRow(message) {
   return row;
 }
 
+function applyPresenceToAvatar(node, chatId) {
+  const count = state.chatPresence.get(chatId)?.size || 0;
+  if (count > 0) node.classList.add('is-online');
+  else node.classList.remove('is-online');
+}
+
 function buildDayDivider(label) {
   if (!label) return null;
   const node = document.createElement('div');
@@ -240,6 +286,14 @@ function buildDayDivider(label) {
   node.setAttribute('role', 'separator');
   node.innerHTML = `<span>${escapeHtml(label)}</span>`;
   return node;
+}
+
+function decorateMessageAvatarPresence(node, message) {
+  const identifier = (message.authorName || '').trim() || message.authorId || '';
+  node.dataset.authorIdentifier = identifier;
+  const presenceSet = state.chatPresence.get(message.chatId);
+  if (identifier && presenceSet?.has(identifier)) node.classList.add('is-online');
+  else node.classList.remove('is-online');
 }
 
 export function createAvatarElement(avatarUrl, fallbackName) {
