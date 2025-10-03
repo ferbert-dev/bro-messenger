@@ -10,7 +10,7 @@
   --radius:18px;
   --phi:1.618;
   --left-fr: 1;
-  --right-fr: 1.618;
+  --right-fr: 3;
   --maxw: 1200px;
 }
 *{box-sizing:border-box}
@@ -44,7 +44,7 @@ body{
 .container{
   width:100%; max-width:var(--maxw); margin:0 auto; padding:24px;
   display:grid; gap:24px;
-  grid-template-columns: minmax(240px, calc((100% - 24px) * (var(--left-fr)/(var(--left-fr)+var(--right-fr))))) minmax(360px, calc((100% - 24px) * (var(--right-fr)/(var(--left-fr)+var(--right-fr)))));
+  grid-template-columns: minmax(220px, 1fr) minmax(360px, 3fr);
   grid-template-areas: "sidebar chat";
 }
 .panel{background:var(--panel); border-radius:20px; box-shadow:var(--shadow)}
