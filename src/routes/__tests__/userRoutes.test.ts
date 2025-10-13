@@ -1,6 +1,6 @@
 import request from 'supertest';
 import app from '../../app'; // don't use .listen() in this app file
-import { IUser, User } from '../../models/userModel'; // Mongoose model
+import { User } from '../../models/userModel'; // Mongoose model
 import { authHeader } from '../../utils/authUtils';
 import {
   USER_CREATED_MESSAGE,

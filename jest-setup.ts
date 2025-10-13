@@ -3,6 +3,9 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 
 let mongo: MongoMemoryServer;
 
+// Provide a fallback secret so JWT creation works in tests
+process.env.JWT_SECRET = process.env.JWT_SECRET ?? 'test-secret';
+
 // Increase Jest timeout for this file to avoid timeouts (at the top)
 jest.setTimeout(60000); // 30 seconds, adjust as needed
 

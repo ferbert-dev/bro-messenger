@@ -171,9 +171,6 @@ async function subscribeUserToChat(
 ) {
   const chat = await getChat(chatId);
   if (!chat) return safeSend(ws, errMsg('chat:not_found', chatId));
-  //TODO LATER
-  //if (!isChatParticipant(chat, userId))
-  //  return safeSend(ws, errMsg('chat:forbidden', chatId));
 
   addToMapSet(userSubscriptions, userId, chatId);
   addToMapSet(chatSubscribers, chatId, userId);
@@ -218,10 +215,7 @@ async function handleIncomingChatMessage(
   if (!subs?.has(chatId)) {
     logger.error('Ignore message chat id ' + chatId);
     return;
-  } // ignore or send error
-  //coment this code because user subscube to the chat and this check will be done in that step
-  //const chat = await getChat(chatId);
-  //if (!chat || !isChatParticipant(chat, userId)) return;
+  } 
   //TODO save message parallel to db, do not need to wait
   const saved: IMessage = await saveMessage(userId, chatId, content);
   const populated = await saved.populate('author', 'name avatarUrl');
@@ -244,18 +238,14 @@ async function handleIncomingChatMessage(
 
 export function broadcastToChat(chatId: string, msg: string) {
   const userIds = chatSubscribers.get(chatId);
-  logger.info('broadcast to all1');
   if (!userIds?.size) return;
-  logger.info('broadcast to all before for');
+
   for (const uid of userIds) {
     const ws = userSockets.get(uid);
-    logger.info('broadcast to all3');
     if (ws) {
-      logger.info('broadcast ws not null');
       safeSend(ws, msg);
     }
   }
-  logger.info('broadcast to all after for');
 }
 
 async function broadcastUserLeft(userId: string, chatId: string) {
@@ -338,8 +328,6 @@ async function saveMessage(
   chatId: string,
   content: string,
 ): Promise<IMessage> {
-  // If your Message model returns a document, this is fine;
-  // If you need plain JSON, call .toObject() after create()
   return await Message.create({ author: authorId, chat: chatId, content });
 }
 
