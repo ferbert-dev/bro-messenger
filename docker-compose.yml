@@ -1,4 +1,22 @@
 services:
+  api:
+    build: .
+    container_name: bro-messager-api
+    ports:
+      - "3005:3005"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=${MONGO_URI}
+      - JWT_SECRET=${JWT_SECRET}
+      - EXPIRES_IN=${EXPIRES_IN}
+    volumes:
+      - .:/app
+      - /app/node_modules     # prevents host node_modules from overwriting container deps
+    depends_on:
+      mongo:
+        condition: service_healthy
   mongo:
     image: mongo:latest
     container_name: mongo-db

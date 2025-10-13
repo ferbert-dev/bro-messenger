@@ -215,7 +215,7 @@ async function handleIncomingChatMessage(
   if (!subs?.has(chatId)) {
     logger.error('Ignore message chat id ' + chatId);
     return;
-  } 
+  }
   //TODO save message parallel to db, do not need to wait
   const saved: IMessage = await saveMessage(userId, chatId, content);
   const populated = await saved.populate('author', 'name avatarUrl');

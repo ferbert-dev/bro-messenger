@@ -9,10 +9,7 @@ import {
   FAILED_TO_CREATE_CHAT,
   YOU_ARE_NOT_ADMIN,
 } from '../../common/constants';
-import {
-  saveBase64Image,
-  deleteFileIfExists,
-} from '../../utils/avatarStorage';
+import { saveBase64Image, deleteFileIfExists } from '../../utils/avatarStorage';
 import fs from 'fs';
 
 jest.mock('../../services/chatService');
@@ -50,8 +47,12 @@ describe('chatController', () => {
         {
           _id: 'chat1',
           title: 'General',
-          admins: [{ _id: 'admin1', name: 'Admin', email: 'admin@example.com' }],
-          participants: [{ _id: 'user1', name: 'User', email: 'user@example.com' }],
+          admins: [
+            { _id: 'admin1', name: 'Admin', email: 'admin@example.com' },
+          ],
+          participants: [
+            { _id: 'user1', name: 'User', email: 'user@example.com' },
+          ],
         } as any,
       ]);
 
@@ -66,8 +67,22 @@ describe('chatController', () => {
           id: 'chat1',
           title: 'General',
           avatarUrl: undefined,
-          admins: [{ id: 'admin1', name: 'Admin', email: 'admin@example.com', avatarUrl: undefined }],
-          members: [{ id: 'user1', name: 'User', email: 'user@example.com', avatarUrl: undefined }],
+          admins: [
+            {
+              id: 'admin1',
+              name: 'Admin',
+              email: 'admin@example.com',
+              avatarUrl: undefined,
+            },
+          ],
+          members: [
+            {
+              id: 'user1',
+              name: 'User',
+              email: 'user@example.com',
+              avatarUrl: undefined,
+            },
+          ],
         },
       ]);
     });
@@ -81,7 +96,10 @@ describe('chatController', () => {
         admins: [],
         participants: [],
       } as any);
-      const req = { params: { chatId: 'chat1' }, user: { userId: 'u1' } } as unknown as AuthRequest;
+      const req = {
+        params: { chatId: 'chat1' },
+        user: { userId: 'u1' },
+      } as unknown as AuthRequest;
       const res = createResponse();
 
       await chatController.getChatById(req, res);
@@ -94,7 +112,10 @@ describe('chatController', () => {
 
     it('throws when chat missing', async () => {
       mockedChatService.getChatById.mockResolvedValue(null);
-      const req = { params: { chatId: 'missing' }, user: { userId: 'u1' } } as unknown as AuthRequest;
+      const req = {
+        params: { chatId: 'missing' },
+        user: { userId: 'u1' },
+      } as unknown as AuthRequest;
       const res = createResponse();
 
       await expect(chatController.getChatById(req, res)).rejects.toThrow(
@@ -107,7 +128,10 @@ describe('chatController', () => {
     it('returns messages for chat', async () => {
       mockedChatService.getChatById.mockResolvedValue({ _id: 'chat1' } as any);
       mockedMessageService.mockResolvedValue(['message']);
-      const req = { params: { chatId: 'chat1' }, user: { userId: 'u1' } } as unknown as AuthRequest;
+      const req = {
+        params: { chatId: 'chat1' },
+        user: { userId: 'u1' },
+      } as unknown as AuthRequest;
       const res = createResponse();
 
       await chatController.getChatMessagesById(req, res);
@@ -118,12 +142,15 @@ describe('chatController', () => {
 
     it('throws 404 when chat missing', async () => {
       mockedChatService.getChatById.mockResolvedValue(null);
-      const req = { params: { chatId: 'missing' }, user: { userId: 'u1' } } as unknown  as AuthRequest;
+      const req = {
+        params: { chatId: 'missing' },
+        user: { userId: 'u1' },
+      } as unknown as AuthRequest;
       const res = createResponse();
 
-      await expect(chatController.getChatMessagesById(req, res)).rejects.toThrow(
-        CHAT_NOT_FOUND,
-      );
+      await expect(
+        chatController.getChatMessagesById(req, res),
+      ).rejects.toThrow(CHAT_NOT_FOUND);
     });
   });
 

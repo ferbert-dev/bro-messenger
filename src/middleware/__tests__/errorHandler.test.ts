@@ -4,7 +4,7 @@ import { HttpError } from '../../utils/httpError';
 
 describe('errorHandler middleware', () => {
   const createReq = (overrides: Partial<Request> = {}) =>
-    ({ method: 'GET', path: '/path', ...overrides } as Request);
+    ({ method: 'GET', path: '/path', ...overrides }) as Request;
 
   const createRes = () => {
     const res: any = {};

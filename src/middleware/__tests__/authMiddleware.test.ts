@@ -34,7 +34,9 @@ describe('authenticateToken', () => {
     const res = createRes();
     const next = jest.fn();
 
-    verifySpy.mockImplementation((_token, _secret, cb: any) => cb(new Error('bad')));
+    verifySpy.mockImplementation((_token, _secret, cb: any) =>
+      cb(new Error('bad')),
+    );
 
     authenticateToken(req, res, next);
 
@@ -51,12 +53,16 @@ describe('authenticateToken', () => {
     const res = createRes();
     const next = jest.fn();
 
-    verifySpy.mockImplementation((_token, _secret, cb: any) => cb(null, { userId: 'different' }));
+    verifySpy.mockImplementation((_token, _secret, cb: any) =>
+      cb(null, { userId: 'different' }),
+    );
 
     authenticateToken(req, res, next);
 
     expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith({ message: 'Forbidden: Not your account' });
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'Forbidden: Not your account',
+    });
     expect(next).not.toHaveBeenCalled();
   });
 
@@ -69,7 +75,9 @@ describe('authenticateToken', () => {
     const res = createRes();
     const next = jest.fn();
 
-    verifySpy.mockImplementation((_token, _secret, cb: any) => cb(null, { userId: 'user-1' }));
+    verifySpy.mockImplementation((_token, _secret, cb: any) =>
+      cb(null, { userId: 'user-1' }),
+    );
 
     authenticateToken(req, res, next);
 
@@ -100,7 +108,9 @@ describe('authenticateAdminToken', () => {
     const res = createRes();
     const next = jest.fn();
 
-    verifySpy.mockImplementation((_token, _secret, cb: any) => cb(new Error('bad')));
+    verifySpy.mockImplementation((_token, _secret, cb: any) =>
+      cb(new Error('bad')),
+    );
 
     authenticateAdminToken(req, res, next);
 
@@ -116,7 +126,9 @@ describe('authenticateAdminToken', () => {
     const res = createRes();
     const next = jest.fn();
 
-    verifySpy.mockImplementation((_token, _secret, cb: any) => cb(null, { role: 'user' }));
+    verifySpy.mockImplementation((_token, _secret, cb: any) =>
+      cb(null, { role: 'user' }),
+    );
 
     authenticateAdminToken(req, res, next);
 
@@ -134,7 +146,9 @@ describe('authenticateAdminToken', () => {
     const res = createRes();
     const next = jest.fn();
 
-    verifySpy.mockImplementation((_token, _secret, cb: any) => cb(null, { role: 'admin' }));
+    verifySpy.mockImplementation((_token, _secret, cb: any) =>
+      cb(null, { role: 'admin' }),
+    );
 
     authenticateAdminToken(req, res, next);
 
