@@ -1,6 +1,7 @@
 import userService from '../userService';
 import { User } from '../../models/userModel';
 import { HttpError } from '../../utils/httpError';
+import { EMAIL_ALREADY_EXISTS, USER_NOT_FOUND } from '../../common/constants';
 jest.mock('../../models/userModel', () => {
   const mockSave = jest.fn();
   const mockFindById = jest.fn();
@@ -77,7 +78,7 @@ describe('createUser', () => {
       HttpError,
     );
     await expect(userService.createUser(mockUserData as any)).rejects.toThrow(
-      'Email already exists',
+      EMAIL_ALREADY_EXISTS,
     );
   });
 
@@ -128,7 +129,7 @@ describe('updateUserById (mocked)', () => {
 
     await expect(
       userService.updateUserById('fakeid', { name: 'Nobody' }),
-    ).rejects.toThrow('User not found');
+    ).rejects.toThrow(USER_NOT_FOUND);
   });
 });
 

@@ -6,6 +6,7 @@ export interface IUser extends Document {
   email: string;
   password: string;
   role: 'admin' | 'user' | 'guest';
+  avatarUrl?: string;
 }
 
 export interface IUserDoc extends IUser {
@@ -27,6 +28,7 @@ const userSchema = new Schema(
     password: { type: String, requered: true },
     email: { type: String, required: true, unique: true },
     role: { type: String, enum: ['admin', 'user', 'guest'], default: 'user' },
+    avatarUrl: { type: String, required: false },
   },
   // This is useful for optimistic concurrency control
   // and to ensure that the document is not modified by another operation

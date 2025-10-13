@@ -1,6 +1,6 @@
 import express from 'express';
 import * as userController from '../controllers/userController';
-import chatRoutes from '../routes/chatRoutes';
+import { getAllChatsForUserById } from '../controllers/chatController';
 import { asyncHandler } from '../utils/asyncHandler';
 import { validateObjectId } from '../middleware/validateObjectId';
 import {
@@ -23,6 +23,18 @@ router.put(
   authenticateToken,
   asyncHandler(userController.updateUserById),
 );
+
+router.post(
+  '/me/avatar',
+  authenticateToken,
+  asyncHandler(userController.uploadMyAvatar),
+);
+
+router.get(
+  '/me/avatar',
+  authenticateToken,
+  asyncHandler(userController.getMyAvatar),
+);
 router.bind;
 //admin endpoints
 router.delete(
@@ -39,6 +51,10 @@ router.get(
   asyncHandler(userController.getUserById),
 ); // validate only the ID
 
-router.use('/me/chats/', chatRoutes);
+router.get(
+  'me/chats/',
+  authenticateToken,
+  asyncHandler(getAllChatsForUserById),
+);
 
 export default router;

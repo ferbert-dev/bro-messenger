@@ -1,4 +1,22 @@
 services:
+  api:
+    build: .
+    container_name: bro-messager-api
+    ports:
+      - "3005:3005"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=${MONGO_URI}
+      - JWT_SECRET=${JWT_SECRET}
+      - EXPIRES_IN=${EXPIRES_IN}
+    volumes:
+      - .:/app
+      - /app/node_modules     # prevents host node_modules from overwriting container deps
+    depends_on:
+      mongo:
+        condition: service_healthy
   mongo:
     image: mongo:latest
     container_name: mongo-db
@@ -16,6 +34,15 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  web:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend:/var/www/frontend:ro
+      - ./uploads:/var/www/uploads:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
 
 volumes:
   mongo_data:

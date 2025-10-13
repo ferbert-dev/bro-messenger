@@ -5,10 +5,24 @@ import { authenticateToken } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
+router.get('', authenticateToken, asyncHandler(chatController.getAllChats));
+
 router.get(
-  '',
+  '/:chatId/messages',
   authenticateToken,
-  asyncHandler(chatController.getAllChatsForUserById),
+  asyncHandler(chatController.getChatMessagesById),
+);
+
+router.get(
+  '/:chatId/avatar',
+  authenticateToken,
+  asyncHandler(chatController.getChatAvatar),
+);
+
+router.post(
+  '/:chatId/avatar',
+  authenticateToken,
+  asyncHandler(chatController.uploadChatAvatar),
 );
 
 router.get(
@@ -16,7 +30,6 @@ router.get(
   authenticateToken,
   asyncHandler(chatController.getChatById),
 );
-
 router.post(
   '/:chatId/members',
   authenticateToken,

@@ -2,15 +2,28 @@ import { Request, Response } from 'express';
 import * as userController from '.././userController'; // Adjust path if needed
 import userService from '../../services/userService';
 import { HttpError } from '../../utils/httpError';
+import { USER_NOT_FOUND } from '../../common/constants';
 import { AuthRequest } from '../../middleware/authMiddleware';
-// Mocks
+import * as avatarStorage from '../../utils/avatarStorage';
+import fs from 'fs';
+
 jest.mock('../../services/userService');
+jest.mock('../../utils/avatarStorage', () => ({
+  deleteFileIfExists: jest.fn(),
+  saveBase64Image: jest
+    .fn()
+    .mockReturnValue({ relativePath: '/uploads/new-avatar.png' }),
+}));
+jest.mock('fs', () => ({
+  existsSync: jest.fn(),
+}));
 
 function mockResponse(): Response {
   const res = {} as Response;
   res.status = jest.fn().mockReturnValue(res);
   res.json = jest.fn().mockReturnValue(res);
   res.send = jest.fn().mockReturnValue(res);
+  (res as any).sendFile = jest.fn().mockReturnValue(res);
   return res;
 }
 
@@ -117,7 +130,7 @@ describe('User Controller', () => {
       } as unknown as Request;
       const res = mockResponse();
 
-      await userController.updateUserById(req, res);
+      await userController.updateUserById(req as AuthRequest, res);
 
       expect(userService.updateUserById).toHaveBeenCalledWith('1', {
         name: 'Updated',
@@ -133,10 +146,10 @@ describe('User Controller', () => {
       } as unknown as Request;
       const res = mockResponse();
 
-      await userController.updateUserById(req, res);
+      await userController.updateUserById(req as AuthRequest, res);
 
       expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ message: 'User not found' });
+      expect(res.json).toHaveBeenCalledWith({ message: USER_NOT_FOUND });
     });
   });
 
@@ -161,7 +174,112 @@ describe('User Controller', () => {
       await userController.deleteUserById(req, res);
 
       expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ message: 'User not found' });
+      expect(res.json).toHaveBeenCalledWith({ message: USER_NOT_FOUND });
+    });
+  });
+
+  describe('uploadMyAvatar', () => {
+    it('saves new avatar and removes previous', async () => {
+      const saveMock = jest.fn().mockResolvedValue(undefined);
+      (userService.getUserById as jest.Mock).mockResolvedValue({
+        avatarUrl: '/uploads/old.png',
+        save: saveMock,
+      });
+
+      const req = {
+        user: { userId: 'u-1' },
+        body: { image: 'data:image/png;base64,abc' },
+      } as AuthRequest;
+      const res = mockResponse();
+
+      await userController.uploadMyAvatar(req, res);
+
+      expect(avatarStorage.saveBase64Image).toHaveBeenCalled();
+      expect(saveMock).toHaveBeenCalled();
+      expect(avatarStorage.deleteFileIfExists).toHaveBeenCalledWith(
+        '/uploads/old.png',
+      );
+      expect(res.json).toHaveBeenCalledWith({
+        avatarUrl: '/uploads/new-avatar.png',
+      });
+    });
+
+    it('throws when image missing', async () => {
+      const req = {
+        user: { userId: 'u-1' },
+        body: {},
+      } as AuthRequest;
+      const res = mockResponse();
+
+      await expect(userController.uploadMyAvatar(req, res)).rejects.toThrow(
+        HttpError,
+      );
+    });
+
+    it('throws when user not found', async () => {
+      (userService.getUserById as jest.Mock).mockResolvedValue(null);
+      const req = {
+        user: { userId: 'missing' },
+        body: { image: 'data' },
+      } as AuthRequest;
+      const res = mockResponse();
+
+      await expect(userController.uploadMyAvatar(req, res)).rejects.toThrow(
+        USER_NOT_FOUND,
+      );
+    });
+  });
+
+  describe('getMyAvatar', () => {
+    const existsSync = fs.existsSync as jest.Mock;
+
+    it('sends file when avatar exists on disk', async () => {
+      (userService.getUserById as jest.Mock).mockResolvedValue({
+        avatarUrl: '/uploads/avatar.png',
+      });
+      existsSync.mockReturnValue(true);
+
+      const req = { user: { userId: 'u-1' } } as AuthRequest;
+      const res = mockResponse();
+
+      await userController.getMyAvatar(req, res);
+
+      expect(res.sendFile).toHaveBeenCalled();
+    });
+
+    it('throws when avatar missing', async () => {
+      (userService.getUserById as jest.Mock).mockResolvedValue({
+        avatarUrl: null,
+      });
+      const req = { user: { userId: 'u-1' } } as AuthRequest;
+      const res = mockResponse();
+
+      await expect(userController.getMyAvatar(req, res)).rejects.toThrow(
+        'Avatar not found',
+      );
+    });
+
+    it('throws when file not found on disk', async () => {
+      (userService.getUserById as jest.Mock).mockResolvedValue({
+        avatarUrl: '/uploads/avatar.png',
+      });
+      existsSync.mockReturnValue(false);
+      const req = { user: { userId: 'u-1' } } as AuthRequest;
+      const res = mockResponse();
+
+      await expect(userController.getMyAvatar(req, res)).rejects.toThrow(
+        'Avatar not found',
+      );
+    });
+
+    it('throws when user not found', async () => {
+      (userService.getUserById as jest.Mock).mockResolvedValue(null);
+      const req = { user: { userId: 'missing' } } as AuthRequest;
+      const res = mockResponse();
+
+      await expect(userController.getMyAvatar(req, res)).rejects.toThrow(
+        USER_NOT_FOUND,
+      );
     });
   });
 });

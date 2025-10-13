@@ -5,6 +5,7 @@ export interface IChat extends Document {
   admins: Types.Array<Types.ObjectId>;
   participants: Types.Array<Types.ObjectId>;
   isGroup: boolean;
+  avatarUrl?: string;
 }
 
 const chatSchema = new Schema<IChat>(
@@ -25,6 +26,7 @@ const chatSchema = new Schema<IChat>(
         index: true,
       },
     ],
+    avatarUrl: { type: String, required: false },
     //messages: [
     //  {
     //    type: Schema.Types.ObjectId,

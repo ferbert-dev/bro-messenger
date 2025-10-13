@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Golden-Ratio Chat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/chat.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="logo">Bro Messager</div>
+      <div class="topbar-actions">
+        <button id="profileBtn" class="avatar-btn" type="button" aria-label="Open profile">
+          <span id="profileAvatar" aria-hidden="true">U</span>
+        </button>
+      </div>
+    </header>
+    <div class="container">
+      <!-- Sidebar with chats -->
+      <aside class="panel sidebar" aria-label="All chats">
+        <div class="sb-head">
+          <h2 class="title">Chats</h2>
+          <button id="newChatBtn" class="icon-btn" aria-label="Create chat">+</button>
+        </div>
+        <div class="search"><input id="search" placeholder="Search chats…" /></div>
+        <div id="chatList" class="chat-list"></div>
+      </aside>
+
+      <!-- Current chat window -->
+      <section class="panel chat" aria-label="Current chat">
+        <header class="chat-head">
+          <button id="backToChats" class="back-btn" type="button" aria-label="Back to chats">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14.7 5.3a1 1 0 010 1.4L10.4 11H20a1 1 0 110 2h-9.6l4.3 4.3a1 1 0 11-1.4 1.4l-6-6a1 1 0 010-1.4l6-6a1 1 0 011.4 0z" fill="currentColor"/></svg>
+            <span class="sr-only">Back to chats</span>
+          </button>
+          <div id="chat-image" class="avatar" aria-hidden="true">CW</div>
+          <div id="chat-title" class="room">Current Chat <small>Online</small></div>
+          <div id="chatPresenceDot" class="online" title="Presence status" aria-hidden="true"></div>
+        </header>
+        <main id="messages" class="chat-body" aria-live="polite">
+          <!-- messages will append here -->
+        </main>
+        <footer class="input">
+          <div class="emoji-wrapper">
+            <button id="emojiBtn" class="emoji-btn" type="button" aria-label="Insert emoji">😊</button>
+            <div id="emojiPicker" class="emoji-popover" aria-hidden="true">
+              <emoji-picker id="emojiPickerPanel"></emoji-picker>
+            </div>
+          </div>
+          <input id="input" placeholder="Write a message…" />
+          <button id="send" class="btn btn-circle" aria-label="Send">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3.4 20.6L22 12 3.4 3.4 3 10l12 2-12 2 .4 6.6z" fill="currentColor"/></svg>
+          </button>
+        </footer>
+      </section>
+    </div>
+  </div>
+
+  <!-- Use the new JS file that fetches chats -->
+  <div id="newChatModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <h3>Create Chat</h3>
+      <label for="chatTitleInput">Title</label>
+      <input id="chatTitleInput" type="text" placeholder="Enter chat title" />
+      <label for="chatAvatarInput">Chat image</label>
+      <div id="chatAvatarPreview" class="avatar-preview" aria-hidden="true">
+        <span>CH</span>
+      </div>
+      <input id="chatAvatarInput" type="file" accept="image/*" />
+      <div class="modal-actions">
+        <button id="createChatCancel" class="btn secondary" type="button">Cancel</button>
+        <button id="createChatSave" class="btn" type="button">Save</button>
+      </div>
+      <p id="createChatError" class="modal-error" role="alert"></p>
+    </div>
+  </div>
+
+  <div id="profileModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-content profile-modal">
+      <h3 class="profile-title">Edit Profile</h3>
+      <div class="avatar-preview" id="profileAvatarPreview" aria-hidden="true">
+        <span>U</span>
+      </div>
+      <label for="profileAvatarInput" class="sr-only">Profile picture</label>
+      <input id="profileAvatarInput" type="file" accept="image/*" />
+      <p id="profileEmail" class="profile-email"></p>
+      <label for="profileNameInput">Display name</label>
+      <input id="profileNameInput" type="text" placeholder="Enter your name" />
+      <button id="logoutBtn" class="btn secondary modal-logout" type="button">Logout</button>
+      <div class="modal-actions">
+        <button id="profileCancel" class="btn secondary" type="button">Cancel</button>
+        <button id="profileSave" class="btn" type="button">Save</button>
+      </div>
+      <p id="profileError" class="modal-error" role="alert"></p>
+    </div>
+  </div>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.min.js"></script>
+  <script type="module" src="../js/chat.fetch.js"></script>
+</body>
+</html>
