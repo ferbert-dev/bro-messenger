@@ -42,20 +42,70 @@ A RESTful API for managing users, built with **Express.js**, **Mongoose**, and *
    EXPIRES_IN=1d
 
    ```
-4. You can test your JWT secret for testing
-### Running the Server
-Notes: It is requered to have a docker insatlled!
-Start the development server and create docker contaiener with DB :
+   <details>
+     <summary>Optional: .env.dev for local docker compose</summary>
+
+     When running via `docker-compose` you can keep an `.env` like the example
+     above—the compose file maps the in-cluster Mongo service automatically.
+   </details>
+
+4. (Optional) Verify your JWT secret:
+   ```sh
+   node -e "require('jsonwebtoken').sign({ test: true }, process.env.JWT_SECRET || 'test-secret')"
+   ```
+
+### Building & Running
+
+#### Local Node (outside Docker)
+
+The API and WebSocket server run on the port specified in `.env` (`PORT=3005` by default) and expect MongoDB reachable via `MONGO_URI`.
 
 ```sh
-npm dev
+npm run build   # compile TypeScript to ./dist
+npm start       # runs node dist/server.js
 ```
 
-Start the development server only :
+For development with hot reload:
+
 ```sh
-npm start
+npm run dev:watch   # use your preferred watcher (e.g. ts-node-dev) if configured
 ```
-The server will run on the port specified in `.env` (default: 3000).
+
+#### Docker Compose (API + Mongo + Nginx frontend)
+
+The repo ships with a `docker-compose.yml` that creates three services:
+
+- `api`: the Node.js backend listening on port `3005` (internal only).
+- `mongo`: replica MongoDB instance seeded with credentials from `.env`.
+- `web`: Nginx serving the static frontend (`frontend/public`) and reverse proxying API/WebSocket traffic.
+
+To spin up the full stack:
+
+```sh
+docker compose up --build
+```
+
+Key behavior:
+
+- `web` exposes port `80` so the frontend is reachable at `http://localhost/`.
+- API traffic is proxied internally to `api:3005`; the container port is not published to the host.
+- Uploads are limited to 10 MB (configure via `client_max_body_size` in `nginx.conf`).
+
+To tear down:
+
+```sh
+docker compose down
+```
+
+#### Testing
+
+All Jest suites run against an in-memory Mongo instance:
+
+```sh
+npm test
+```
+
+Give tests extra time if you see Mongo binaries downloading on first run.
 
 ## API Endpoints
 
@@ -63,34 +113,100 @@ The server will run on the port specified in `.env` (default: 3000).
 
 - `GET /`
   - Returns a status page with a logo and message.
+- `GET /health`
+  - Lightweight JSON health-check used by Docker and uptime monitoring.
+
+### Authentication
+
+All auth endpoints are prefixed with `/api/auth`.
+
+- `POST /api/auth/register`
+  - Register a new account. Validates name, email, password (8+ chars) and optional age.
+- `POST /api/auth/login`
+  - Authenticate with email and password. Returns a JWT used for authenticated routes.
 
 ### Users
 
 All user endpoints are prefixed with `/api/users`.
 
-- `GET /api/users`
-  - Get all users.
+- `GET /api/users` *(auth required)*
+  - List users (currently limited to authenticated requests).
+- `GET /api/users/me` *(auth required)*
+  - Fetch the profile for the currently authenticated user.
+- `PUT /api/users/me` *(auth required)*
+  - Update profile fields such as `name` or `age`.
+- `POST /api/users/me/avatar` *(auth required)*
+  - Upload or replace the current user's avatar (base64 payload).
+- `GET /api/users/me/avatar` *(auth required)*
+  - Download the current user's avatar image.
+- `GET /api/users/:id` *(admin token required)*
+  - Fetch another user by id.
+- `DELETE /api/users/:id` *(admin token required)*
+  - Remove a user account.
 
-- `POST /api/users`
-  - Create a new user.
-  - **Body:**  
+### Chats
+
+All chat endpoints are prefixed with `/api/chats`.
+
+- `GET /api/chats` *(auth required)*
+  - List chats the current user participates in.
+- `POST /api/chats` *(auth required)*
+  - Create a new chat. Supports optional `participantIds` and base64 `avatarImage`.
+- `GET /api/chats/:chatId` *(auth required)*
+  - Retrieve metadata for a single chat.
+- `GET /api/chats/:chatId/messages` *(auth required)*
+  - Fetch messages for the chat.
+- `POST /api/chats/:chatId/members` *(auth required, chat admin)*
+  - Add a participant by user id.
+- `DELETE /api/chats/:chatId/members/:userId` *(auth required, chat admin)*
+  - Remove a participant.
+- `POST /api/chats/:chatId/avatar` *(auth required, chat admin)*
+  - Upload or replace the chat avatar image.
+- `GET /api/chats/:chatId/avatar` *(auth required)*
+  - Download the chat avatar image.
+
+### WebSocket
+
+- `GET /ws?token=<JWT>` *(auth required)*
+  - Upgrades to a WebSocket connection used for real-time chat events. Supply the same JWT returned by `login`.
+  - Example handshake:
+    ```
+    const socket = new WebSocket('wss://your-host/ws?token=JWT_HERE');
+    ```
+  - Example subscribe payload:
     ```json
-    {
-      "name": "string",
-      "email": "string",
-      "age": 18
-    }
+    { "type": "subscribe", "chatId": "64fabc..." }
     ```
 
-- `GET /api/users/:id`
-  - Get a user by ID.
+**Messages you may receive**
 
-- `PUT /api/users/:id`
-  - Update a user by ID.
-  - **Body:** Partial or full user object.
+```mermaid
+graph LR
+  A[welcome] -->|type: \"welcome\"| Client
+  B[subscribed] -->|type: \"subscribed\"| Client
+  C[unsubscribed] -->|type: \"unsubscribed\"| Client
+  D[chat message] -->|type: \"chat:message\"| Client
+  E[system notice] -->|type: \"chat:system\"| Client
+  F[error] -->|type: \"error\"| Client
+```
 
-- `DELETE /api/users/:id`
-  - Delete a user by ID.
+- `welcome`: sent immediately after a successful connection.
+- `subscribed`: confirms a `subscribe` request for a chat.
+- `unsubscribed`: indicates the user was removed/unsubscribed from a chat.
+- `chat:message`: a user message broadcast to all subscribers.
+  ```json
+  {
+    "type": "chat:message",
+    "chatId": "64fabc...",
+    "authorId": "638d...",
+    "authorName": "Alice",
+    "authorAvatar": "/uploads/alice.png",
+    "content": "Hello world!",
+    "createdAt": "2024-02-18T21:05:00.000Z"
+  }
+  ```
+- `chat:system`: broadcast system notices (e.g., someone left the room).
+- `error`: error responses (e.g., `chat:not_found`, `chat:forbidden`).
 
 ## Static Files
 
