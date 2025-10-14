@@ -32,13 +32,15 @@ A RESTful API for managing users, built with **Express.js**, **Mongoose**, and *
 
 3. Create a `.env` file in the root directory:
    ```
-   PORT=3000
+   PORT=3005
    MONGO_INITDB_ROOT_USERNAME=admin
    MONGO_INITDB_ROOT_PASSWORD=admin-secret
    MONGO_INITDB_DATABASE=message-db
    NODE_ENV=development
    MONGO_URI=mongodb://admin:admin-secret@localhost:27017/message-db?authSource=admin
-   JWT_SECRET =<your_jwt_secret>
+   JWT_SECRET=X9w!pR3u@7kLz^2hF0q7Mb6TgY8dN4cV
+   EXPIRES_IN=1d
+
    ```
 4. You can test your JWT secret for testing
 ### Running the Server
