@@ -91,18 +91,21 @@ export function initWebSocket(server: Server, path = '/ws') {
     // one-socket-per-user (replace existing if reconnects)
     const prev = userSockets.get(userId);
     if (prev && prev !== ws) {
-      try { 
-        prev.close(1000, "Replaced by new connection"); 
-      } catch {
-      }
-       userSockets.set(userId, ws);
+      try {
+        prev.close(1000, 'Replaced by new connection');
+      } catch {}
+      userSockets.set(userId, ws);
     }
-    safeSend(ws, JSON.stringify({ type: "welcome", userId }));
+    safeSend(ws, JSON.stringify({ type: 'welcome', userId }));
 
     // Incoming messages
     ws.on('message', async (buf) => {
- let msg: any;
-      try { msg = JSON.parse(buf.toString()); } catch { return; }
+      let msg: any;
+      try {
+        msg = JSON.parse(buf.toString());
+      } catch {
+        return;
+      }
       switch (msg.type) {
         case 'subscribe':
           if (!msg.chatId) return;
@@ -114,8 +117,8 @@ export function initWebSocket(server: Server, path = '/ws') {
           await unsubscribeUserFromChat(userId, msg.chatId);
           break;
 
-        case "message":
-          if (!msg.chatId || typeof msg.content !== "string") return;
+        case 'message':
+          if (!msg.chatId || typeof msg.content !== 'string') return;
           await handleIncomingChatMessage(userId, msg.chatId, msg.content);
           break;
 
@@ -161,13 +164,14 @@ async function subscribeUserToChat(
   ws: WebSocket,
 ) {
   const chat = await getChat(chatId);
-  if (!chat) return safeSend(ws, errMsg("chat:not_found", chatId));
-  if (!isChatParticipant(chat, userId)) return safeSend(ws, errMsg("chat:forbidden", chatId));
+  if (!chat) return safeSend(ws, errMsg('chat:not_found', chatId));
+  if (!isChatParticipant(chat, userId))
+    return safeSend(ws, errMsg('chat:forbidden', chatId));
 
   addToMapSet(userSubscriptions, userId, chatId);
   addToMapSet(chatSubscribers, chatId, userId);
 
-  safeSend(ws, JSON.stringify({ type: "subscribed", chatId }));
+  safeSend(ws, JSON.stringify({ type: 'subscribed', chatId }));
 }
 
 function unsubscribeUserFromChat(userId: string, chatId: string) {
@@ -175,7 +179,7 @@ function unsubscribeUserFromChat(userId: string, chatId: string) {
   removeFromMapSet(chatSubscribers, chatId, userId);
 
   const ws = userSockets.get(userId);
-  if (ws) safeSend(ws, JSON.stringify({ type: "unsubscribed", chatId }));
+  if (ws) safeSend(ws, JSON.stringify({ type: 'unsubscribed', chatId }));
 }
 
 async function handleIncomingChatMessage(
