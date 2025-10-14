@@ -1,6 +1,6 @@
-# bro-messager-api
+# bro-messager
 
-A RESTful API for managing users, built with **Express.js**, **Mongoose**, and **Zod** for schema validation.
+A full-stack chat application consisting of a Node.js/Express API, WebSocket server, and vanilla JS/HTML/CSS frontend served via Nginx.
 
 ## Frameworks & Libraries
 
@@ -15,6 +15,7 @@ A RESTful API for managing users, built with **Express.js**, **Mongoose**, and *
 - **Jest** + **ts-jest**: Unit/integration testing in TypeScript.
 - **mongodb-memory-server**: In-memory MongoDB for fast test suites.
 - **nginx** (Docker): Static frontend hosting + reverse proxy for REST/WS traffic.
+- **Vanilla JS + HTML/CSS frontend**: Lightweight login and chat UI consumed directly from the API.
 
 ## Getting Started
 
