@@ -1,4 +1,4 @@
-import { MAX_IMAGE_BYTES } from './chat.constants.js';
+import { MAX_IMAGE_BYTES, UPLOADS_BASE_URL } from './chat.constants.js';
 
 export function escapeHtml(str) {
   return String(str).replace(
@@ -91,7 +91,7 @@ export function normalizeAvatarUrl(url) {
   if (/^https?:\/\//i.test(url)) return url;
   if (url.startsWith('//')) return `${window.location.protocol}${url}`;
   if (url.startsWith('/')) return `${window.location.origin}${url}`;
-  return `${window.location.origin}/${url}`;
+  return `${UPLOADS_BASE_URL.replace(/\/$/, '')}/${url.replace(/^\//, '')}`;
 }
 
 export function isImageFile(file) {

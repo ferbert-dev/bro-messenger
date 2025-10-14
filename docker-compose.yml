@@ -2,21 +2,31 @@ services:
   api:
     build: .
     container_name: bro-messager-api
-    ports:
-      - "3005:3005"
     env_file:
       - .env
     environment:
       - NODE_ENV=development
-      - MONGO_URI=${MONGO_URI}
+      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/${MONGO_INITDB_DATABASE}?authSource=admin
       - JWT_SECRET=${JWT_SECRET}
       - EXPIRES_IN=${EXPIRES_IN}
+      - PORT=3005
     volumes:
       - .:/app
       - /app/node_modules     # prevents host node_modules from overwriting container deps
     depends_on:
       mongo:
         condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >
+          node -e "const http=require('http');const port=process.env.PORT||3005;http.get('http://localhost:'+port+'/health',res=>process.exit(res.statusCode===200?0:1)).on('error',()=>process.exit(1));"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - backend
   mongo:
     image: mongo:latest
     container_name: mongo-db
@@ -34,6 +44,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - backend
   web:
     image: nginx:alpine
     ports:
@@ -43,6 +55,17 @@ services:
       - ./uploads:/var/www/uploads:ro
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     restart: unless-stopped
+    environment:
+      - API_BASE_URL=http://api:3005
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - backend
 
 volumes:
   mongo_data:
+
+networks:
+  backend:
+    driver: bridge

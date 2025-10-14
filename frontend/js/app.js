@@ -1,10 +1,10 @@
-const API_PROTOCOL = window.location.protocol === 'https:' ? 'https:' : 'http:';
-const API_HOSTNAME = window.location.hostname || 'localhost';
-const API_BASE = `${API_PROTOCOL}//${API_HOSTNAME}:3000`;
+import { API_BASE_URL } from './chat.constants.js';
+
+const API_BASE = API_BASE_URL;
 
 const ENDPOINTS = {
-  login: `${API_BASE}/api/auth/login`,
-  register: `${API_BASE}/api/auth/register`,
+  login: `${API_BASE}/auth/login`,
+  register: `${API_BASE}/auth/register`,
 };
 const REDIRECT_URL = "chat.html";
 const TOKEN_KEY = "authToken";
