@@ -50,7 +50,7 @@ export function initSocket(onMessage) {
     } catch {}
   }
 
-  const url = new URL(WS_BASE_URL);
+  const url = new URL(WS_BASE_URL, window.location.href);
   if (window.location.protocol === 'https:') {
     url.protocol = 'wss:';
   }
