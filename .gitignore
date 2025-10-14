@@ -6,4 +6,3 @@ dist/
 .vscode/
 coverage/
 uploads/
->>>>>>> 4abe809 (update .gitignore to include coverage and uploads directories)
