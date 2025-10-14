@@ -181,13 +181,21 @@ All chat endpoints are prefixed with `/api/chats`.
 **Messages you may receive**
 
 ```mermaid
-graph LR
-  A[welcome] -->|type: \"welcome\"| Client
-  B[subscribed] -->|type: \"subscribed\"| Client
-  C[unsubscribed] -->|type: \"unsubscribed\"| Client
-  D[chat message] -->|type: \"chat:message\"| Client
-  E[system notice] -->|type: \"chat:system\"| Client
-  F[error] -->|type: \"error\"| Client
+  sequenceDiagram
+    participant Client
+    participant Server
+    Client->>Server: Connect (wss://.../ws?token=JWT)
+    Server-->>Client: {"type":"welcome","userId":"..."}
+    Client->>Server: {"type":"subscribe","chatId":"chat-1"}
+    Server-->>Client: {"type":"subscribed","chatId":"chat-1"}
+    Client->>Server: {"type":"subscribe","chatId":"chat-2"}
+    Server-->>Client: {"type":"subscribed","chatId":"chat-2"}
+    Server-->>Client: {"type":"chat:message","chatId":"chat-1",...}
+    Server-->>Client: {"type":"chat:system","chatId":"chat-2",...}
+    Client->>Server: {"type":"unsubscribe","chatId":"chat-1"}
+    Server-->>Client: {"type":"unsubscribed","chatId":"chat-1"}
+    Client->>Server: {"type":"subscribe","chatId":"chat-nonexistent"}
+    Server-->>Client: {"type":"error","code":"chat:not_found","chatId":"chat-nonexistent"}
 ```
 
 - `welcome`: sent immediately after a successful connection.
