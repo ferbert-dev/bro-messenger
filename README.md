@@ -9,6 +9,12 @@ A RESTful API for managing users, built with **Express.js**, **Mongoose**, and *
 - **Zod**: TypeScript-first schema validation
 - **dotenv**: Loads environment variables
 - **ts-node-dev**: TypeScript execution and hot-reloading for development
+- **JSON Web Token (jsonwebtoken)**: Stateless auth tokens for HTTP & WebSocket.
+- **bcryptjs**: Password hashing for user credentials.
+- **ws**: WebSocket server used for real-time chat updates.
+- **Jest** + **ts-jest**: Unit/integration testing in TypeScript.
+- **mongodb-memory-server**: In-memory MongoDB for fast test suites.
+- **nginx** (Docker): Static frontend hosting + reverse proxy for REST/WS traffic.
 
 ## Getting Started
 
