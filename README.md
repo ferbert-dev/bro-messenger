@@ -1,4 +1,4 @@
-# bro-messager
+# Bro Messenger
 
 A full-stack chat application consisting of a Node.js/Express API, WebSocket server, and vanilla JS/HTML/CSS frontend served via Nginx.
 
