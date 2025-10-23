@@ -6,30 +6,39 @@ import chatRoutes from './routes/chatRoutes';
 import errorHandler from './middleware/errorHandler';
 import { staticPath } from './middleware/staticPathImport';
 import { ensureUploadsDir, uploadsDir } from './utils/avatarStorage';
+import { applySecurity } from './security';
+import {parseCsv} from './utils/parsers'
+import { authenticateToken,
+} from './middleware/authMiddleware'
+import { logger } from './utils/logger';
 
 const app = express();
 
-// 🔓 Wide-open CORS (NOT for production!)
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*'); // allow everything
-  res.header(
-    'Access-Control-Allow-Methods',
-    'GET,PUT,POST,PATCH,DELETE,OPTIONS',
-  );
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+const isProd = process.env.NODE_ENV === 'production';
 
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200); // quick reply to preflight
-  }
-  next();
+const devWebFallback = ['http://localhost:3005', 'http://localhost:5173','http://api:3005'];
+const envWebOrigins = parseCsv(process.env.SECURITY_WEB_ORIGINS);
+const webOrigins =
+  envWebOrigins.length > 0 ? envWebOrigins : isProd ? [] : devWebFallback;
+
+applySecurity(app, {
+  webOrigins,
+  apiOrigins: parseCsv(process.env.SECURITY_API_ORIGINS),
+  wsOrigins: parseCsv(process.env.SECURITY_WS_ORIGINS),
+  scriptCdn: parseCsv(process.env.SECURITY_SCRIPT_CDN),
+  styleCdn: parseCsv(process.env.SECURITY_STYLE_CDN),
+  imgCdn: parseCsv(process.env.SECURITY_IMG_CDN),
+  jsonLimit: process.env.SECURITY_JSON_LIMIT ?? undefined,
+  isProd,
 });
-
-app.use(express.json({ limit: '10mb' }));
 
 // Serve static files like logo.png
 app.use(staticPath);
-ensureUploadsDir();
-app.use('/uploads', express.static(uploadsDir));
+ensureUploadsDir().catch((error) => {
+  // eslint-disable-next-line no-console
+  logger.info('Failed to prepare uploads directory', error);
+});
+app.use('/uploads', authenticateToken, express.static(uploadsDir));
 
 app.use('/', statusRoutes);
 

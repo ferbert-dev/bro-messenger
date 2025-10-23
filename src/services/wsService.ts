@@ -1,5 +1,6 @@
 import { Server } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
+import { Types } from 'mongoose';
 import { logger } from '../utils/logger';
 import chatService from './chatService';
 import { getMessagesByChatId } from './messageService';
@@ -94,8 +95,8 @@ export function initWebSocket(server: Server, path = '/ws') {
       try {
         prev.close(1000, 'Replaced by new connection');
       } catch {}
-      userSockets.set(userId, ws);
     }
+    userSockets.set(userId, ws);
     safeSend(ws, JSON.stringify({ type: 'welcome', userId }));
 
     // Incoming messages
@@ -165,8 +166,8 @@ async function subscribeUserToChat(
 ) {
   const chat = await getChat(chatId);
   if (!chat) return safeSend(ws, errMsg('chat:not_found', chatId));
-  if (!isChatParticipant(chat, userId))
-    return safeSend(ws, errMsg('chat:forbidden', chatId));
+  //if (!isChatParticipant(chat, userId))
+  //  return safeSend(ws, errMsg('chat:forbidden', chatId));
 
   addToMapSet(userSubscriptions, userId, chatId);
   addToMapSet(chatSubscribers, chatId, userId);
@@ -260,8 +261,64 @@ function errMsg(code: string, chatId?: string) {
 }
 
 // ---- Internals ----
+function normalizeId(value: unknown): string | null {
+  if (!value) return null;
+  if (typeof value === 'string') return value;
+
+  if (value instanceof Types.ObjectId) {
+    return value.toHexString();
+  }
+
+  if (typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+
+    if ('id' in record && typeof record.id === 'string') {
+      return record.id;
+    }
+
+    if ('_id' in record) {
+      const nested = record._id;
+      if (nested && nested !== value) {
+        const normalized = normalizeId(nested);
+        if (normalized) return normalized;
+      }
+    }
+
+    const toStringFn = (record as { toString?: () => string }).toString;
+    if (typeof toStringFn === 'function') {
+      const str = toStringFn.call(value);
+      if (typeof str === 'string' && str !== '[object Object]') {
+        return str;
+      }
+    }
+  }
+
+  return null;
+}
+
 function isChatParticipant(chat: IChat, userId: string): boolean {
-  return chat.participants.some((p) => p.equals(userId));
+  const target = normalizeId(userId);
+  if (!target) return false;
+  return chat.participants.some((p) => normalizeId(p) === target);
+}
+
+async function ensureUserSubscription(
+  userId: string,
+  chatId: string,
+): Promise<boolean> {
+  const subs = userSubscriptions.get(userId);
+  if (subs?.has(chatId)) return true;
+
+  const chat = await getChat(chatId);
+  if (!chat) return false;
+  //TODO IF-01
+  // I do not want to check now if use is a chat member -> subscrube 
+  // This is an additionale feature that will be implemented in the future 
+  //if (!isChatParticipant(chat, userId)) return false;
+
+  addToMapSet(userSubscriptions, userId, chatId);
+  addToMapSet(chatSubscribers, chatId, userId);
+  return true;
 }
 
 async function getChat(id: string): Promise<IChat | null> {

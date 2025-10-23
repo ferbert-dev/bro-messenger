@@ -1,7 +1,10 @@
 import { WS_BASE_URL } from './chat.constants.js';
 import { state } from './chat.state.js';
 
+const RECONNECT_DELAY_MS = 1500;
+
 let messageHandler = null;
+let reconnectTimer = null;
 
 function enqueue(action) {
   state.pendingSocketActions.push(action);
@@ -16,6 +19,23 @@ function flushQueue() {
       console.error('Failed to run queued socket action', err);
     }
   }
+}
+
+function clearReconnectTimer() {
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
+}
+
+function scheduleReconnect() {
+  if (reconnectTimer || !state.authToken) return;
+  if (state.socket && state.socket.readyState === WebSocket.OPEN) return;
+
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+    initSocket();
+  }, RECONNECT_DELAY_MS);
 }
 
 function ensureSocket(action) {
@@ -44,11 +64,7 @@ export function initSocket(onMessage) {
   }
   if (!state.authToken) return;
 
-  if (state.socket && state.socket.readyState !== WebSocket.CLOSED) {
-    try {
-      state.socket.close(1000, 'Re-initializing socket');
-    } catch {}
-  }
+  clearReconnectTimer();
 
   const url = new URL(WS_BASE_URL, window.location.href);
   if (window.location.protocol === 'https:') {
@@ -56,14 +72,18 @@ export function initSocket(onMessage) {
   }
   url.searchParams.set('token', state.authToken);
 
-  state.socket = new WebSocket(url.toString());
+  const ws = new WebSocket(url.toString());
+  state.socket = ws;
 
-  state.socket.addEventListener('open', () => {
+  ws.addEventListener('open', () => {
+    if (state.socket !== ws) return;
+    clearReconnectTimer();
     flushQueue();
     if (state.activeChatId) subscribeToChat(state.activeChatId);
   });
 
-  state.socket.addEventListener('message', (event) => {
+  ws.addEventListener('message', (event) => {
+    if (state.socket !== ws) return;
     try {
       const payload = JSON.parse(event.data);
       messageHandler?.(payload);
@@ -72,11 +92,17 @@ export function initSocket(onMessage) {
     }
   });
 
-  state.socket.addEventListener('error', (event) => {
+  ws.addEventListener('error', (event) => {
+    if (state.socket !== ws) return;
     console.error('WebSocket error observed:', event);
+    scheduleReconnect();
   });
-  state.socket.addEventListener('close', () => {
-    console.warn('WebSocket closed');
+
+  ws.addEventListener('close', () => {
+    if (state.socket === ws) {
+      state.socket = null;
+      scheduleReconnect();
+    }
   });
 }
 

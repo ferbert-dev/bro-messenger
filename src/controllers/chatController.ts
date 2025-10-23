@@ -78,7 +78,7 @@ export const createChat = async (req: AuthRequest, res: Response) => {
 
   if (chatData.avatarImage) {
     try {
-      const { relativePath } = saveBase64Image(
+      const { relativePath } = await saveBase64Image(
         chatData.avatarImage,
         `chat-${userId}`,
       );
@@ -177,7 +177,7 @@ export const uploadChatAvatar = async (req: AuthRequest, res: Response) => {
 
   const previousAvatar = chat.avatarUrl;
   try {
-    const { relativePath } = saveBase64Image(image, `chat-${chatId}`);
+    const { relativePath } = await saveBase64Image(image, `chat-${chatId}`);
     await chatService.updateChatAvatar(chatId, relativePath);
     if (previousAvatar && previousAvatar !== relativePath) {
       deleteFileIfExists(previousAvatar);

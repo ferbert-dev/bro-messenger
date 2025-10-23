@@ -182,7 +182,7 @@ describe('chatController', () => {
     });
 
     it('saves avatar image and cleans up on success', async () => {
-      mockedSaveImage.mockReturnValue({ relativePath: '/uploads/chat.png' });
+      mockedSaveImage.mockResolvedValue({ relativePath: '/uploads/chat.png' });
       mockedChatService.createChat.mockResolvedValue({
         _id: 'chat1',
         title: 'Room',
@@ -208,7 +208,7 @@ describe('chatController', () => {
     });
 
     it('removes saved avatar when creation fails', async () => {
-      mockedSaveImage.mockReturnValue({ relativePath: '/uploads/chat.png' });
+      mockedSaveImage.mockResolvedValue({ relativePath: '/uploads/chat.png' });
       mockedChatService.createChat.mockResolvedValue(null as any);
       const req = {
         user: { userId: 'admin1' },
@@ -223,9 +223,7 @@ describe('chatController', () => {
     });
 
     it('throws when avatar saving fails', async () => {
-      mockedSaveImage.mockImplementation(() => {
-        throw new Error('Invalid chat avatar image');
-      });
+      mockedSaveImage.mockRejectedValue(new Error('Invalid chat avatar image'));
       const req = {
         user: { userId: 'admin1' },
         body: { title: 'Room', avatarImage: 'bad' },
@@ -361,7 +359,7 @@ describe('chatController', () => {
         ],
         avatarUrl: '/uploads/old.png',
       } as any);
-      mockedSaveImage.mockReturnValue({ relativePath: '/uploads/chat.png' });
+      mockedSaveImage.mockResolvedValue({ relativePath: '/uploads/chat.png' });
       const req = {
         params: { chatId: 'chat1' },
         user: { userId: 'admin1' },

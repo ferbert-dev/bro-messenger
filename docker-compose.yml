@@ -10,6 +10,11 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - EXPIRES_IN=${EXPIRES_IN}
       - PORT=${PORT}
+      - SECURITY_WEB_ORIGINS=${SECURITY_WEB_ORIGINS}
+      - SECURITY_API_ORIGINS=${SECURITY_API_ORIGINS}
+      - SECURITY_WS_ORIGINS=${SECURITY_WS_ORIGINS}
+      - SECURITY_JSON_LIMIT=${SECURITY_JSON_LIMIT}
+      - SECURITY_AVATAR_MAX_BYTES=${SECURITY_AVATAR_MAX_BYTES}
     volumes:
       - .:/app
       - /app/node_modules     # prevents host node_modules from overwriting container deps

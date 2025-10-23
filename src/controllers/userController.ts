@@ -92,7 +92,7 @@ export const uploadMyAvatar = async (req: AuthRequest, res: Response) => {
   }
 
   try {
-    const { relativePath } = saveBase64Image(image, userId ?? 'avatar');
+    const { relativePath } = await saveBase64Image(image, userId ?? 'avatar');
     const previousAvatar = user.avatarUrl;
     user.avatarUrl = relativePath;
     await user.save();

@@ -47,6 +47,12 @@ A full-stack chat application consisting of a Node.js/Express API, WebSocket ser
    MONGO_URI=mongodb://admin:admin-secret@localhost:27017/message-db?authSource=admin
    JWT_SECRET=X9w!pR3u@7kLz^2hF0q7Mb6TgY8dN4cV
    EXPIRES_IN=1d
+   SECURITY_WEB_ORIGINS=http://localhost:3000,http://localhost:5173
+   SECURITY_API_ORIGINS=
+   SECURITY_WS_ORIGINS=ws://localhost:3005
+   SECURITY_JSON_LIMIT=10mb
+   SECURITY_AVATAR_MAX_BYTES=2mb
+   SECURITY_TRUST_PROXY=1
 
    ```
    <details>
@@ -110,9 +116,29 @@ All Jest suites run against an in-memory Mongo instance:
 
 ```sh
 npm test
-```
+ ```
 
 Give tests extra time if you see Mongo binaries downloading on first run.
+
+### Security Configuration
+
+- `SECURITY_WEB_ORIGINS` controls which browser origins can call the API. In production set this to your HTTPS frontend domains (comma separated). Leaving it empty allows only same-origin requests.
+- `SECURITY_API_ORIGINS` and `SECURITY_WS_ORIGINS` complement the Content-Security-Policy headers for REST/WebSocket calls from the browser. Supply `https://`/`wss://` URLs as needed.
+- Optional CDN allow-lists: `SECURITY_SCRIPT_CDN`, `SECURITY_STYLE_CDN`, `SECURITY_IMG_CDN`.
+- `SECURITY_JSON_LIMIT` caps JSON payload size (default `100kb`). Bump this (for example to `10mb`) if you send large base64 payloads.
+- `SECURITY_AVATAR_MAX_BYTES` limits avatar uploads after decoding. Accepts values such as `10mb`; defaults to `2mb`.
+- `SECURITY_TRUST_PROXY` mirrors Express’ [`trust proxy`](https://expressjs.com/en/guide/behind-proxies.html). Set it when you run behind Nginx/Load Balancer so rate-limiting and IP detection work (e.g. `SECURITY_TRUST_PROXY=1` or `loopback`).
+- Auth routes are rate limited (`authLimiter`) to mitigate brute-force login attempts.
+
+### Frontend & CORS
+
+- The static frontend reads `window.API_BASE_URL`/`window.WS_BASE_URL` before it loads any modules. Set them by editing the `<meta name="api-base-url">` and `<meta name="ws-base-url">` tags in `frontend/public/login.html` and `frontend/public/chat.html`, or override them at runtime with an inline script.
+- Example (local dev hitting the API on `http://localhost:3005`):
+  ```html
+  <meta name="api-base-url" content="http://localhost:3005/api">
+  <meta name="ws-base-url" content="ws://localhost:3005/ws">
+  ```
+- Ensure the same origins are present in `SECURITY_WEB_ORIGINS` (and `SECURITY_WS_ORIGINS` for sockets) so the server’s CORS/CSP allow the browser requests.
 
 ## API Endpoints
 
@@ -231,6 +257,8 @@ All chat endpoints are prefixed with `/api/chats`.
 
 - All errors return JSON with a `success: false` and a descriptive `message`.
 
+## TODOs
+- IF-01 - story to check and request a subscription to a chat
 ---
 
 **Author:** IF DEV

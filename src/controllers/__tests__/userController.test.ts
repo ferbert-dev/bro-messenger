@@ -12,7 +12,7 @@ jest.mock('../../utils/avatarStorage', () => ({
   deleteFileIfExists: jest.fn(),
   saveBase64Image: jest
     .fn()
-    .mockReturnValue({ relativePath: '/uploads/new-avatar.png' }),
+    .mockResolvedValue({ relativePath: '/uploads/new-avatar.png' }),
 }));
 jest.mock('fs', () => ({
   existsSync: jest.fn(),
