@@ -4,6 +4,7 @@ A full-stack chat application consisting of a Node.js/Express API, WebSocket ser
 
 ## Frameworks & Libraries
 
+
 - **Express.js**: Web framework for Node.js
 - **Mongoose**: MongoDB object modeling
 - **Zod**: TypeScript-first schema validation
