@@ -29,7 +29,8 @@ function parseByteLimit(raw?: string): number | null {
 }
 
 const MAX_FILE_BYTES =
-  parseByteLimit(process.env.SECURITY_AVATAR_MAX_BYTES) ?? DEFAULT_MAX_FILE_BYTES;
+  parseByteLimit(process.env.SECURITY_AVATAR_MAX_BYTES) ??
+  DEFAULT_MAX_FILE_BYTES;
 
 export const uploadsDir = path.join(process.cwd(), 'uploads');
 
@@ -74,7 +75,9 @@ function resolveWorkerConfig(): { script: string; execArgv: string[] } {
     };
   }
 
-  throw new Error('Image writer worker script not found. Ensure the project is built.');
+  throw new Error(
+    'Image writer worker script not found. Ensure the project is built.',
+  );
 }
 
 async function writeFileWithWorker(absolutePath: string, buffer: Buffer) {
@@ -86,7 +89,7 @@ async function writeFileWithWorker(absolutePath: string, buffer: Buffer) {
       execArgv,
     });
     logger.info('[avatarWorker] spawned', worker.threadId, absolutePath);
-    worker.once('message', msg => logger.info('[avatarWorker] done', msg));
+    worker.once('message', (msg) => logger.info('[avatarWorker] done', msg));
     const cleanup = () => {
       worker.removeAllListeners();
     };
@@ -96,7 +99,9 @@ async function writeFileWithWorker(absolutePath: string, buffer: Buffer) {
       if (message.ok) {
         resolve();
       } else {
-        reject(new Error(message.error ?? 'Image writer worker reported an error'));
+        reject(
+          new Error(message.error ?? 'Image writer worker reported an error'),
+        );
       }
     });
 

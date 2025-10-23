@@ -312,8 +312,8 @@ async function ensureUserSubscription(
   const chat = await getChat(chatId);
   if (!chat) return false;
   //TODO IF-01
-  // I do not want to check now if use is a chat member -> subscrube 
-  // This is an additionale feature that will be implemented in the future 
+  // I do not want to check now if use is a chat member -> subscrube
+  // This is an additionale feature that will be implemented in the future
   //if (!isChatParticipant(chat, userId)) return false;
 
   addToMapSet(userSubscriptions, userId, chatId);

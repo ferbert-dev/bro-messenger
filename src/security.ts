@@ -31,7 +31,7 @@ export function applySecurity(
     imgCdn = [],
     jsonLimit = '100kb',
     isProd = process.env.NODE_ENV === 'production',
-  }: SecurityOptions
+  }: SecurityOptions,
 ) {
   const trustProxyEnv = process.env.SECURITY_TRUST_PROXY;
   if (trustProxyEnv) {
@@ -39,24 +39,26 @@ export function applySecurity(
       trustProxyEnv.toLowerCase() === 'false'
         ? false
         : trustProxyEnv.toLowerCase() === 'true'
-        ? 1
-        : trustProxyEnv;
+          ? 1
+          : trustProxyEnv;
     app.set('trust proxy', normalized);
   } else if (isProd) {
     app.set('trust proxy', 1);
   }
   app.disable('x-powered-by');
 
-  // CORS (frontends that are allowed to call API) 
+  // CORS (frontends that are allowed to call API)
   const allowlist = new Set(webOrigins);
   const corsOptions: CorsOptions = {
     credentials: true,
     origin(
       origin: string | undefined,
-      cb: (err: Error | null, allow?: boolean) => void
+      cb: (err: Error | null, allow?: boolean) => void,
     ) {
       if (!origin) return cb(null, true); // same-origin/curl
-      return allowlist.has(origin) ? cb(null, true) : cb(new Error('CORS blocked'));
+      return allowlist.has(origin)
+        ? cb(null, true)
+        : cb(new Error('CORS blocked'));
     },
   };
   app.use(cors(corsOptions));
@@ -70,24 +72,26 @@ export function applySecurity(
   ];
   const imgSrc = ["'self'", 'data:', ...imgCdn];
   const scriptSrc = ["'self'", ...scriptCdn];
-  const styleSrc = ["'self'", "'unsafe-inline'", ...styleCdn]; 
+  const styleSrc = ["'self'", "'unsafe-inline'", ...styleCdn];
 
   app.use(
     helmet({
       contentSecurityPolicy: {
         useDefaults: true,
         directives: {
-          "default-src": ["'self'"],
-          "base-uri": ["'self'"],
-          "img-src": imgSrc,
-          "script-src": scriptSrc,
-          "style-src": styleSrc,
-          "connect-src": connectSrc,
+          'default-src': ["'self'"],
+          'base-uri': ["'self'"],
+          'img-src': imgSrc,
+          'script-src': scriptSrc,
+          'style-src': styleSrc,
+          'connect-src': connectSrc,
         },
       },
-      hsts: isProd ? { maxAge: 15552000, includeSubDomains: true, preload: true } : false,
+      hsts: isProd
+        ? { maxAge: 15552000, includeSubDomains: true, preload: true }
+        : false,
       noSniff: true,
-    })
+    }),
   );
 
   // ----- Body limit + rate limit -----
@@ -99,7 +103,7 @@ export function applySecurity(
       standardHeaders: 'draft-7',
       legacyHeaders: false,
       message: { error: 'Too many requests, please try again later.' },
-    })
+    }),
   );
 }
 

@@ -7,16 +7,19 @@ import errorHandler from './middleware/errorHandler';
 import { staticPath } from './middleware/staticPathImport';
 import { ensureUploadsDir, uploadsDir } from './utils/avatarStorage';
 import { applySecurity } from './security';
-import {parseCsv} from './utils/parsers'
-import { authenticateToken,
-} from './middleware/authMiddleware'
+import { parseCsv } from './utils/parsers';
+import { authenticateToken } from './middleware/authMiddleware';
 import { logger } from './utils/logger';
 
 const app = express();
 
 const isProd = process.env.NODE_ENV === 'production';
 
-const devWebFallback = ['http://localhost:3005', 'http://localhost:5173','http://api:3005'];
+const devWebFallback = [
+  'http://localhost:3005',
+  'http://localhost:5173',
+  'http://api:3005',
+];
 const envWebOrigins = parseCsv(process.env.SECURITY_WEB_ORIGINS);
 const webOrigins =
   envWebOrigins.length > 0 ? envWebOrigins : isProd ? [] : devWebFallback;

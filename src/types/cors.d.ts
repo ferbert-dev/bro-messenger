@@ -9,7 +9,7 @@ declare module 'cors' {
       | (string | RegExp)[]
       | ((
           origin: string | undefined,
-          callback: (err: Error | null, allow?: boolean) => void
+          callback: (err: Error | null, allow?: boolean) => void,
         ) => void);
     methods?: string | string[];
     allowedHeaders?: string | string[];
