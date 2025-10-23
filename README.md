@@ -28,8 +28,8 @@ A full-stack chat application consisting of a Node.js/Express API, WebSocket ser
 
 1. Clone the repository:
    ```sh
-   git@github.com:ferbert-dev/bro-messager-api.git
-   cd bro-messager-api
+   git@github.com:ferbert-dev/bro-messenger.git
+   cd bro-messenger
    ```
 
 2. Install dependencies:

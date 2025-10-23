@@ -1,5 +1,5 @@
 {
-  "name": "message-server",
+  "name": "bro-messenger",
   "version": "1.0.0",
   "description": "",
   "main": "server.ts",
