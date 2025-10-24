@@ -1,4 +1,4 @@
-# Bro Messager Frontend
+# Bro Messenger Frontend
 
 Static HTML, CSS, and vanilla JS client that talks to the Express API for
 authentication, chat, and avatar uploads. The stack assumes Nginx serves these
