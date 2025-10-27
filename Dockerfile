@@ -1,30 +1,28 @@
-# --- Stage 1: build the app ---
+# --- Stage 1: install dependencies & build ---
 FROM node:22-alpine AS builder
 
 WORKDIR /app
-# copy dependency manifests and install ALL deps (including dev)
+
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
-# copy source files and build TypeScript
 COPY tsconfig.json ./
-COPY src/ ./src
+COPY src ./src
 
-# Compile TypeScript
-RUN npx tsc
+RUN npm run build
 
 
-# --- Stage 2: create a lightweight runtime image ---
+# --- Stage 2: runtime image ---
 FROM node:22-alpine AS runtime
 
 WORKDIR /app
 
-# copy only the compiled output from the builder stage
-COPY --from=builder /app/package*.json ./
+ENV NODE_ENV=production
+
+COPY package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 
-# set the port your app listens on (change if different)
 EXPOSE 3000
 
-CMD ["node", "dist/server.js"]
+CMD ["npm", "start"]

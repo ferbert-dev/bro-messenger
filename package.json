@@ -8,6 +8,7 @@
     "lint": "eslint 'src/**/*.{js,ts}'",
     "format": "prettier --write 'src/**/*.{js,ts,json,md}'",
     "build": "tsc -p .",
+    "prestart": "node -e \"const { execSync } = require('child_process'); if (process.env.NODE_ENV !== 'production') { console.log('Running TypeScript build before start...'); execSync('npm run build', { stdio: 'inherit' }); } else { console.log('Production mode detected; using prebuilt dist.'); }\"",
     "start": "node dist/server.js",
     "dev": "docker-compose up -d && npm run start",
     "dev:clean": "docker-compose down -v && docker-compose up -d --build && npm run start",

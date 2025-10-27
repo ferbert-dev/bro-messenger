@@ -48,11 +48,11 @@ A full-stack chat application consisting of a Node.js/Express API, WebSocket ser
    MONGO_URI=mongodb://admin:admin-secret@localhost:27017/message-db?authSource=admin
    JWT_SECRET=X9w!pR3u@7kLz^2hF0q7Mb6TgY8dN4cV
    EXPIRES_IN=1d
-   SECURITY_WEB_ORIGINS=http://localhost:3000,http://localhost:5173
+   SECURITY_WEB_ORIGINS=http://localhost:3000, http://localhost:5173, http://localhost, http://localhost:80
    SECURITY_API_ORIGINS=
    SECURITY_WS_ORIGINS=ws://localhost:3005
-   SECURITY_JSON_LIMIT=10mb
-   SECURITY_AVATAR_MAX_BYTES=2mb
+   SECURITY_JSON_LIMIT=12mb
+   SECURITY_AVATAR_MAX_BYTES=12mb
    SECURITY_TRUST_PROXY=1
 
    ```
